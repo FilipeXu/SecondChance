@@ -3,25 +3,39 @@ using Microsoft.EntityFrameworkCore;
 using SecondChance.Data;
 using SecondChance.Models;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-//builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-//    .AddEntityFrameworkStores<ApplicationDbContext>();
-
-builder.Services.AddIdentity<User, IdentityRole>(options =>
-                              options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddIdentity<User, IdentityRole>(options => {
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireNonAlphanumeric = false;
+}
+                              )
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders()
 .AddDefaultUI();
 builder.Services.AddRazorPages();
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddControllersWithViews(); builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = "471247438309-fovn71s75jfrmghrh06mhi1g92mmnpv0.apps.googleusercontent.com";
+        options.ClientSecret = "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";
+    })
+     .AddFacebook(options =>
+     {
+         options.ClientId = "1228769704894471";
+         options.ClientSecret = "435ccee723c9109ea15cf9eaef8ddbc1";
+     });
+
+
 
 var app = builder.Build();
 

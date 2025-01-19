@@ -19,8 +19,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using SecondChance.Models;
+using SecondChancePrototype.Models;
 
-namespace SecondChance.Areas.Identity.Pages.Account
+namespace SecondChancePrototype.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
@@ -75,6 +76,16 @@ namespace SecondChance.Areas.Identity.Pages.Account
             ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
+
+            [Required]
+            [Display(Name = "Nome Completo")]
+            public string FullName { get; set; }
+
+            [Required]
+            [DataType(DataType.Date)]
+            [Display(Name = "Data de Nascimento")]
+            public DateTime BirthDate { get; set; }
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
@@ -85,9 +96,10 @@ namespace SecondChance.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
+            [PasswordStrengthAttribute]
             public string Password { get; set; }
 
             /// <summary>
@@ -114,6 +126,9 @@ namespace SecondChance.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
+
+                user.FullName = Input.FullName;
+                user.BirthDate = Input.BirthDate;
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
