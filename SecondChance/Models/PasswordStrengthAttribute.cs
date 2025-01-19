@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SecondChancePrototype.Models
+namespace SecondChance.Models
 {
     public sealed class PasswordStrengthAttribute : ValidationAttribute
     {

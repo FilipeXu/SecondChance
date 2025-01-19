@@ -19,9 +19,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using SecondChance.Models;
-using SecondChancePrototype.Models;
 
-namespace SecondChancePrototype.Areas.Identity.Pages.Account
+namespace SecondChance.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
