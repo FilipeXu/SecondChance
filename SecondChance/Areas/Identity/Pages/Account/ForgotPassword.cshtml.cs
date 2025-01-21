@@ -3,6 +3,7 @@
 #nullable disable
 
 using System;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -48,6 +49,10 @@ namespace SecondChance.Areas.Identity.Pages.Account
             [Required]
             [EmailAddress]
             public string Email { get; set; }
+
+            [Required]
+            [PasswordPropertyText]
+            public string Password { get; set; }
         }
 
         public async Task<IActionResult> OnPostAsync()
