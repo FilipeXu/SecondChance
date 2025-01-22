@@ -1,33 +1,136 @@
 ﻿@page
 @model ExternalLoginModel
 @{
-    ViewData["Title"] = "Register";
+    Layout = null;
 }
 
-<h1>@ViewData["Title"]</h1>
-<h2 id="external-login-title">Associate your @Model.ProviderDisplayName account.</h2>
-<hr />
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ExternalLogin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
 
-<p id="external-login-description" class="text-info">
-    You've successfully authenticated with <strong>@Model.ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
-</p>
+        .register-container {
+            background-color: #C4E5C2;
+            border: 1px solid #000000;
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+        }
 
-<div class="row">
-    <div class="col-md-4">
+            .register-container h2 {
+                font-size: 24px;
+                margin-top: 0;
+                margin-bottom: 16px;
+                text-align: center;
+                color: #000;
+            }
+
+            .register-container .text-info {
+                margin-bottom: 32px;
+            }
+
+        .form-control {
+            border-radius: 0;
+            margin-bottom: 5px;
+            background-color: #E8F5E9;
+            border: 1px solid #000000;
+        }
+
+            .form-control:focus {
+                border-color: #000;
+                outline: none;
+                box-shadow: none;
+            }
+
+        .form-label {
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        .btn-primary {
+            background-color: #68B064;
+            color: #FFFFFF;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .text-danger {
+            color: red;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #000;
+        }
+
+        @@media (max-height: 600px) {
+            body {
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            .register-container {
+                padding: 16px;
+            }
+        }
+
+        hr {
+            margin: 16px 0;
+            border-top: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h2 id="external-login-title">Associar conta @Model.ProviderDisplayName</h2>
+        <hr />
+
         <form asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email."/>
-                <label asp-for="Input.Email" class="form-label"></label>
+            <div class="mb-3">
+                <label asp-for="Input.FullName" class="form-label" for="Input_FullName">Nome de usuário</label>
+                <input asp-for="Input.FullName" class="form-control" id="Input_FullName" autocomplete="name" aria-required="true" placeholder="Nome completo" />
+                <span asp-validation-for="Input.FullName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.BirthDate" class="form-label" for="Input_BirthDate">Data de nascimento</label>
+                <input asp-for="Input.BirthDate" class="form-control" id="Input_BirthDate" autocomplete="bday" aria-required="true" placeholder="dd/mm/aaaa" />
+                <span asp-validation-for="Input.BirthDate" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Input.Email" class="form-label" for="Input_Email">Email</label>
+                <input asp-for="Input.Email" class="form-control" id="Input_Email" autocomplete="email" aria-required="true" placeholder="name@example.com" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+            <button type="submit" class="btn-primary">Registar</button>
+            <div class="footer-text">Ao entrar no site estás a aceitar os termos e condições</div>
         </form>
     </div>
-</div>
 
-@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
-}
+</body>
+</html>
