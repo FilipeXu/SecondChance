@@ -1,10 +1,127 @@
 ﻿@page
 @model LoginModel
 
+@section Styles {
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <style>
+        .login-container {
+            background-color: #C4E5C2;
+            border-radius: 10px;
+            padding: 15px;
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 100px;
+        }
+
+        .btn-social {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            font-weight: bold;
+            border-radius: 5px;
+            text-decoration: none;
+            border: 1px solid #000;
+            margin-bottom: 8px;
+        }
+
+            .btn-social i {
+                margin-right: 12px;
+            }
+
+        .btn-facebook {
+            background-color: #E8F5E9;
+            color: #000;
+        }
+
+        .btn-google {
+            background-color: #E8F5E9;
+            color: #000;
+        }
+
+        .btn-login, .btn-register {
+            width: 47%;
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-login {
+            color: #FFF;
+            border: 1px solid #000;
+            background-color: #68B064;
+        }
+
+        .btn-register {
+            color: #000;
+            border: 1px solid #000;
+            background-color: #E8F5E9;
+        }
+
+        .form-control {
+            border-radius: 0;
+            margin-bottom: 5px;
+            background-color: #E8F5E9;
+            border: 1px solid #000;
+            border-radius: 5px;
+        }
+
+            .form-control:focus {
+                border-color: #000;
+                outline: none;
+                box-shadow: none;
+            }
+
+        .form-label {
+            color: #000;
+            margin-bottom: 0;
+        }
+
+        .btn-primary {
+            background-color: #68B064;
+            color: #FFF;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #000;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        #forgot-password {
+            text-decoration: none;
+            color: #000;
+        }
+
+        .text-danger {
+            color: red;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
+        .footer-text {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #000;
+        }
+
+        hr {
+            margin: 16px 0;
+            border-top: 1px solid #000;
+        }
+    </style>
+}
+
 @{
     ViewData["Title"] = "Log in";
 }
 
+@*
 <h1>@ViewData["Title"]</h1>
 <div class="row">
     <div class="col-md-4">
@@ -77,7 +194,78 @@
         </section>
     </div>
 </div>
+*@
+
+<section class="login-container">
+    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <div class="d-fleX">
+            <button type="submit" class="btn btn-social btn-google" name="provider" value="Google">
+                <i class="fab fa-google"></i>
+                Google
+            </button>
+            <button type="submit" class="btn btn-social btn-facebook" name="provider" value="Facebook">
+                <i class="fab fa-facebook"></i>
+                Facebook
+            </button>
+        </div>
+    </form>
+    <hr />
+
+    <div class="d-flex justify-content-between mb-2">
+        <a asp-page="./Login" class="btn btn-login">Login</a>
+        <a asp-page="./Register" class="btn btn-register">Registar</a>
+    </div>
+
+    <form id="account" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <div class="mb-3">
+            <label asp-for="Input.Email" class="form-label">Email</label>
+            <input asp-for="Input.Email" class="form-control" autocomplete="email" placeholder="name@example.com" />
+            <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+
+        @*
+        <div class="mb-3">
+             <label asp-for="Input.Email" class="form-label">Email</label>
+             <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+             <span asp-validation-for="Input.Email" class="text-danger"></span>
+        </div>
+        *@
+
+        <div class="mb-3">
+            <label asp-for="Input.Password" class="form-label">Password</label>
+            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="Password" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+
+        @*
+        <div class="form-floating mb-3">
+            <label asp-for="Input.Password" class="form-label">Password</label>
+            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+        </div>
+        *@
+
+        @*
+        <div class="checkbox">
+            <label asp-for="Input.RememberMe" class="form-label">
+                <input class="form-check-input" asp-for="Input.RememberMe" />
+                @Html.DisplayNameFor(m => m.Input.RememberMe)
+            </label>
+        </div>
+        *@
+
+        <p>
+            <a id="forgot-password" asp-page="./ForgotPassword">Esqueceu-se da password?</a>
+        </p>
+        <button type="submit" class="btn-primary">Entrar</button>
+        <div class="footer-text">Ao entrar no site estás a aceitar os termos e condições</div>
+    </form>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 }
