@@ -12,10 +12,10 @@
     <style>
         .register-container {
             background-color: #C4E5C2;
-            border: 1px solid #000;
-            padding: 30px;
+            border-radius: 10px;
+            padding: 15px;
             width: 100%;
-            max-width: 500px;
+            max-width: 300px;
             margin-bottom: 100px;
         }
 
@@ -23,18 +23,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 45%;
-            padding: 10px;
-            margin: 0 5px;
+            width: 100%;
             font-weight: bold;
             border-radius: 5px;
             text-decoration: none;
             border: 1px solid #000;
+            margin-bottom: 8px;
         }
 
-            .btn-social i {
-                margin-right: 12px;
-            }
+        .btn-social i {
+            margin-right: 12px;
+        }
 
         .btn-facebook {
             background-color: #E8F5E9;
@@ -47,7 +46,7 @@
         }
 
         .btn-login, .btn-register {
-            width: 45%;
+            width: 47%;
             padding: 8px 16px;
             border-radius: 5px;
             font-weight: bold;
@@ -72,13 +71,14 @@
             margin-bottom: 5px;
             background-color: #E8F5E9;
             border: 1px solid #000;
+            border-radius: 5px;
         }
 
-            .form-control:focus {
-                border-color: #000;
-                outline: none;
-                box-shadow: none;
-            }
+        .form-control:focus {
+            border-color: #000;
+            outline: none;
+            box-shadow: none;
+        }
 
         .form-label {
             color: #000;
@@ -115,11 +115,9 @@
     </style>
 }
 
-<h1>@ViewData["Title"]</h1>
-
 <section class="register-container">
     <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-        <div class="d-flex justify-content-between my-4">
+        <div class="d-fleX">
             <button type="submit" class="btn btn-social btn-google" name="provider" value="Google">
                 <i class="fab fa-google"></i>
                 Google
@@ -130,12 +128,12 @@
             </button>
         </div>
     </form>
+    <hr />
 
     <div class="d-flex justify-content-between my-4">
         <a asp-page="./Login" class="btn btn-login">Login</a>
         <a asp-page="./Register" class="btn btn-register">Registar</a>
     </div>
-    <hr />
 
     <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
         <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
