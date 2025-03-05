@@ -74,7 +74,10 @@ namespace SecondChance.Areas.Identity.Pages.Account
             ///     directly from your code. This API may change or be removed in future releases.
             /// </summary>
             [Required]
+
             [DataType(DataType.Password)]
+            [Display(Name = "Password")]
+            [PasswordStrengthAttribute]
             public string Password { get; set; }
 
             /// <summary>
