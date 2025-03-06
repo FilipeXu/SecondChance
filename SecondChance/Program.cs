@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SecondChance.Data;
 using SecondChance.Models;
-
+using Microsoft.AspNetCore.Identity.UI.Services;
+using SecondChance.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,13 +13,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddIdentity<User, IdentityRole>(options => {
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = true;
+    options.SignIn.RequireConfirmedEmail = true;
     options.Password.RequireNonAlphanumeric = false;
 }
                               )
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders()
 .AddDefaultUI();
+
+// Add email sender service
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
 builder.Services.AddRazorPages();
 
 builder.Services.AddControllersWithViews();
@@ -34,8 +40,6 @@ builder.Services.AddControllersWithViews(); builder.Services.AddAuthentication()
          options.ClientId = "1228769704894471";
          options.ClientSecret = "435ccee723c9109ea15cf9eaef8ddbc1";
      });
-
-
 
 var app = builder.Build();
 

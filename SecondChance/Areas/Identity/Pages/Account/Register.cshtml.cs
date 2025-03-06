@@ -83,6 +83,7 @@ namespace SecondChance.Areas.Identity.Pages.Account
             [Required]
             [DataType(DataType.Date)]
             [Display(Name = "Data de Nascimento")]
+            [MinimumAge(18)]
             public DateTime BirthDate { get; set; }
 
             [Required]
