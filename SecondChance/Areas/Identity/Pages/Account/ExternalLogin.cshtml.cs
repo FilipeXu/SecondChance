@@ -72,6 +72,26 @@ namespace SecondChance.Areas.Identity.Pages.Account
         [TempData]
         public string ErrorMessage { get; set; }
 
+        public string Email { get; set; }
+
+        public string JoinDate { get; set; }
+
+        [Required]
+        [Display(Name = "Imagem")]
+        public string Image { get; set; }
+
+        [Required]
+        [Display(Name = "Localidade")]
+        public string Location { get; set; }
+
+        [Required]
+        [Display(Name = "Descricão")]
+        public string Description { get; set; }
+
+        [DataType(DataType.PhoneNumber)]
+        [Display(Name = "Numero de telemovel")]
+        public string PhoneNumber { get; set; }
+
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -93,6 +113,7 @@ namespace SecondChance.Areas.Identity.Pages.Account
             [Required]
             [EmailAddress]
             public string Email { get; set; }
+
         }
 
         public IActionResult OnGet() => RedirectToPage("./Login");
@@ -118,6 +139,19 @@ namespace SecondChance.Areas.Identity.Pages.Account
             {
                 ErrorMessage = "Error loading external login information.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            }
+
+            // Verificar se o usuário já possui uma conta e se está ativa
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            if (!string.IsNullOrEmpty(email))
+            {
+                var existingUser = await _userManager.FindByEmailAsync(email);
+                if (existingUser != null && !existingUser.IsActive)
+                {
+                    _logger.LogWarning("Tentativa de login externo com conta desativada: {Email}", email);
+                    ErrorMessage = "Esta conta foi desativada. Por favor, entre em contato com o administrador para mais informações.";
+                    return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                }
             }
 
             // Sign in the user with this external login provider if the user already has a login.
@@ -161,7 +195,12 @@ namespace SecondChance.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = CreateUser();
-
+                user.Location = "Por definir";
+                user.JoinDate = DateTime.Now;
+                user.Image = "Por definir";
+                user.PhoneNumber = "Por definir";
+                user.Description = "Escreva algo sobre si e o seu numero de telemóvel...";
+                user.IsActive = true;
                 user.FullName = Input.FullName;
                 user.BirthDate = Input.BirthDate;
 

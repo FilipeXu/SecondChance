@@ -21,11 +21,13 @@ namespace SecondChance.Areas.Identity.Pages.Account
     public class LoginModel : PageModel
     {
         private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<User> _userManager;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<User> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(SignInManager<User> signInManager, UserManager<User> userManager, ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -113,6 +115,17 @@ namespace SecondChance.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                // Primeiro, verifique se o usuário existe e está ativo
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+
+                if (user != null && !user.IsActive)
+                {
+                    // Se a conta foi desativada, não permita o login
+                    _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
+                    ModelState.AddModelError(string.Empty, "Esta conta foi desativada. Por favor, entre em contato com o administrador para reativá-la.");
+                    return Page();
+                }
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
