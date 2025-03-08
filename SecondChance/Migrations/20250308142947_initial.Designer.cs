@@ -12,7 +12,7 @@ using SecondChance.Data;
 namespace SecondChance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250306122745_initial")]
+    [Migration("20250308142947_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -217,6 +217,10 @@ namespace SecondChance.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -225,6 +229,20 @@ namespace SecondChance.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("JoinDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
