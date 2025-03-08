@@ -1,30 +1,555 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Profile";
-    ViewData["ActivePage"] = ManageNavPages.Index;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+<style>
+    * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif;}
+    body {background-color: #f5f5f5; color: #333;}
+    .container {max-width: 1200px; margin: 0 auto; padding: 20px;}
+
+    :root {
+        --primary: #4a8f3e;
+        --primary-light: #6abd5e;
+        --primary-dark: #5a9f50;
+        --bg-light: #e8f5e3;
+        --bg-lighter: #f0f9ed;
+        --border-light: #e0e9dc;
+    }
+
+    .btn {
+        border: none;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn:hover {transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+    
+    .btn-primary {background-color: var(--primary-light); color: white;}
+    .btn-primary:hover {background-color: var(--primary-dark);}
+    
+    .btn-cancel {background-color: #f5f5f5; color: #555; border: 1px solid #ddd; margin-right: 10px;}
+    .btn-cancel:hover {background-color: #e0e0e0;}
+    
+    .btn-danger {background-color: #dc3545; color: white;}
+    .btn-danger:hover {background-color: #c82333;}
+
+
+    .profile-card {
+        display: flex;
+        background-color: var(--bg-light);
+        margin-bottom: 20px;
+        padding: 20px;
+        border-radius: 8px;
+        position: relative;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .profile-image {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 20px;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .profile-details {display: flex; flex-direction: column; justify-content: center;}
+    .profile-name {font-size: 22px; font-weight: bold; color: var(--primary); margin-bottom: 5px;}
+    .profile-location {font-size: 16px; display: flex; align-items: center; margin-bottom: 3px;}
+    .profile-location::before {content: '📍'; margin-right: 5px;}
+    .profile-date {font-size: 14px; color: #666; margin-bottom: 8px;}
+    .profile-rating {margin-top: 5px; color: #f8b400; font-size: 18px;}
+    
+    .status-dots {display: flex; margin-top: 8px; align-items: center;}
+    .dot {width: 12px; height: 12px; border-radius: 50%; margin-right: 6px;}
+    .dot-gray {background-color: #888;}
+    .dot-green {background-color: #5cb85c;}
+    .dot-status-text {font-size: 14px; color: #555; margin-left: 5px;}
+
+    .edit-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 20px;
+        color: var(--primary);
+        transition: transform 0.2s;
+    }
+    .edit-button:hover {transform: scale(1.1);}
+
+    .action-buttons {position: absolute; bottom: 20px; right: 20px; display: flex; gap: 12px;}
+    .add-btn, .chat-btn {composes: btn;}
+    .add-btn {background-color: var(--primary-light); color: white;}
+    .add-btn::before {content: '+ '; margin-right: 5px;}
+    .chat-btn {background-color: var(--primary-dark); color: white;}
+    .chat-btn::before {content: '💬 '; margin-right: 5px;}
+
+    .content-row {display: flex; margin-bottom: 25px; gap: 20px;}
+    
+    .bio-box {
+        flex: 2;
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .bio-box p {line-height: 1.6; font-size: 15px;}
+
+    .reviews-box {
+        flex: 1;
+        background-color: var(--bg-lighter);
+        padding: 20px;
+        border-radius: 8px;
+        overflow-y: auto;
+        max-height: 220px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .reviews-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--primary);
+        border-bottom: 2px solid var(--border-light);
+        padding-bottom: 8px;
+    }
+
+    .review {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-light);
+    }
+    .review:last-child {border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+    
+    .reviewer {display: flex; align-items: center; margin-bottom: 8px;}
+    .reviewer-img {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+        border: 2px solid white;
+    }
+    .reviewer-name {font-weight: bold; font-size: 15px; color: #444;}
+    .review-text {font-size: 14px; color: #555; line-height: 1.5;}
+
+    .divider {height: 1px; background-color: #e0e0e0; margin: 25px 0;}
+
+
+    .profile-form {
+        background-color: white;
+        padding: 0;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        margin-top: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        display: none;
+    }
+
+    .tab-container {background-color: #e0f3e0; border-radius: 8px; overflow: hidden;}
+    .tab-buttons {display: flex; border-bottom: 1px solid #ccc;}
+    .tab-btn {
+        flex: 1;
+        padding: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        background-color: #d0e9d0;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .tab-btn.active {background-color: #c2e3c2; border-bottom: 3px solid var(--primary);}
+    
+    .tab-content {display: none; padding: 20px; background-color: #e0f3e0;}
+    .tab-content.active {display: block;}
+
+
+    .form-group {margin-bottom: 20px;}
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 15px;
+        transition: border-color 0.2s;
+    }
+    .form-control:focus {
+        border-color: var(--primary-light);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(106,189,94,0.1);
+    }
+    .form-label {display: block; margin-bottom: 8px; font-weight: 600; color: #555;}
+    
+    .input-with-icon {position: relative; display: flex; align-items: center;}
+    .edit-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        color: var(--primary);
+    }
+    
+    .password-change-fields {
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #d0e9d0;
+        border-radius: 6px;
+        display: none;
+    }
+    
+    .form-actions {display: flex; justify-content: flex-end; margin-top: 20px; padding: 0 20px 20px;}
+    .text-danger {color: #dc3545; font-size: 14px; margin-top: 5px;}
+    
+    .status-message {
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: none;
+    }
+    .status-success {background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;}
+    .status-error {background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;}
+
+    .deactivate-account {
+        margin-top: 30px;
+        padding: 15px;
+        background-color: #fff8f8;
+        border: 1px solid #f5c6cb;
+        border-radius: 6px;
+    }
+    .deactivate-title {font-size: 16px; font-weight: 600; color: #721c24; margin-bottom: 10px;}
+    .deactivate-text {font-size: 14px; color: #555; margin-bottom: 15px; line-height: 1.5;}
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 500px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .modal-title {font-size: 18px; font-weight: 600; color: #721c24; margin-bottom: 15px;}
+    .modal-buttons {display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px;}
+
+    .sidebar {width: 220px; float: left; padding-right: 20px;}
+    .sidebar-title {font-size: 20px; margin-bottom: 15px; color: var(--primary); font-weight: 600;}
+    .sidebar-subtitle {font-size: 16px; margin-bottom: 8px; color: #555; font-weight: 500;}
+    
+    .filter-option {
+        padding: 8px 12px;
+        margin-bottom: 5px;
+        cursor: pointer;
+        font-size: 15px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .filter-option:hover {background-color: var(--bg-lighter);}
+    .filter-option.active {background-color: var(--primary-light); color: white; font-weight: 500;}
+
+    .products {margin-left: 240px;}
+    .product-item {
+        display: flex;
+        background-color: white;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+        border: 1px solid var(--bg-light);
+    }
+    .product-item:hover {transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
+    
+    .product-img {width: 150px; height: 150px; object-fit: cover;}
+    .product-info {
+        flex: 1;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .product-title {font-weight: 600; margin-bottom: 10px; color: var(--primary); font-size: 17px;}
+    .product-desc {font-size: 14px; color: #666; line-height: 1.5;}
+    
+    .product-meta {
+        padding: 15px;
+        text-align: right;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-width: 180px;
+        background-color: #f9fcf8;
+        border-left: 1px solid var(--bg-light);
+    }
+    .product-location {
+        font-weight: 600;
+        font-size: 15px;
+        color: #555;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+    .product-location::before {content: '📍'; margin-right: 5px;}
+    .product-date {font-size: 13px; color: #888; margin-top: 5px;}
+    .product-category {
+        font-size: 13px;
+        background-color: var(--bg-light);
+        padding: 5px 10px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-top: 10px;
+        color: var(--primary);
+        font-weight: 500;
+    }
+</style>
+
+<div class="container">
+    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="status-message @(Model.StatusMessage.Contains("sucesso") ? "status-success" : "status-error")" style="display: block;">
+            @Model.StatusMessage
+        </div>
+    }
+
+
+    <div class="profile-card">
+        @* <img src="@(string.IsNullOrEmpty(Model.UserProfile.Image) ? "/Images/placeholder.jpg" : Model.UserProfile.Image)" alt="Imagem de Perfil" class="profile-image"> *@
+        <div class="profile-details">
+@*             <div class="profile-name">@Model.UserProfile.FullName</div>
+            <div class="profile-location">Localização: @Model.UserProfile.Location</div>
+            <div class="profile-date">Membro desde @Model.UserProfile.JoinDate</div>
+            <div class="profile-rating">★★★★☆</div> *@
+            <div class="status-dots">
+                <div class="dot dot-gray"></div>
+                <div class="dot dot-green"></div>
+                <span class="dot-status-text">Online</span>
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+        </div>
+        <button class="edit-button" id="edit-profile-btn" title="Editar perfil">✏️</button>
+        <div class="action-buttons">
+            <button class="add-btn btn">Adicionar Produto</button>
+            <button class="chat-btn btn">Ir para o chat</button>
+        </div>
+    </div>
+
+
+    <div class="content-row">
+@*         <div class="bio-box">
+            <p>@Model.UserProfile.Description</p>
+        </div *@>
+        <div class="reviews-box">
+            <h3 class="reviews-title">Avaliações Recentes</h3>
+            <div class="review">
+                <div class="reviewer">
+                    <img src="/Images/placeholder.jpg" alt="Paulo Silva" class="reviewer-img">
+                    <div class="reviewer-name">Paulo Silva</div>
+                </div>
+                <div class="review-text">Muito simpática e responde rápido, muito obrigado @Model.Username!</div>
             </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
+            <div class="review">
+                <div class="reviewer">
+                    <img src="/Images/placeholder.jpg" alt="Joana Pais" class="reviewer-img">
+                    <div class="reviewer-name">Joana Pais</div>
+                </div>
+                <div class="review-text">Enviei mensagem e em menos de 3 dias recebi o meu casaco, muito simpática a menina.</div>
+            </div>
+            <div class="review">
+                <div class="reviewer">
+                    <img src="/Images/placeholder.jpg" alt="Gregório Reis" class="reviewer-img">
+                    <div class="reviewer-name">Gregório Reis</div>
+                </div>
+                <div class="review-text">Respondeu rápido ao pedido mas a qualidade da roupa parece ser mais em quarta mão de que em segunda.</div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="profile-form" id="profile-form">
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="public-data">Dados publicos</button>
+                <button class="tab-btn" data-tab="private-data">Dados Privados</button>
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+                <div class="tab-content active" id="public-data">
+                    <div class="form-group">
+                        <label class="form-label">Imagem de Perfil</label>
+                        <div class="image-upload-container">
+                            <div class="current-image-preview">
+                                @* <img id="image-preview" src="@(string.IsNullOrEmpty(Model.UserProfile.Image) ? "/Images/placeholder.jpg" : Model.UserProfile.Image)" alt="Preview" style="max-width: 100px; max-height: 100px; border-radius: 50%; margin-bottom: 10px;"> *@
+                            </div>
+                            <input type="file" id="imageFile" name="ImageFile" accept="image/*" class="form-control" />
+                            <small class="text-muted">Selecione uma imagem para o seu perfil</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="Input_FullName" class="form-label">FullName</label>
+@*                         <input type="text" id="Input_Username" name="Input.FullName" class="form-control" value="@Model.Input.FullName" />
+                        <span asp-validation-for="Input.FullName" class="text-danger"></span> *@
+                    </div>
+                    <div class="form-group">
+                        <label for="Input_Location" class="form-label">Localização</label>
+@*                         <input type="text" id="Input_Location" name="Input.Location" class="form-control" value="@Model.Input.Location" />
+                        <span asp-validation-for="Input.Location" class="text-danger"></span> *@
+                    </div>
+                    <div class="form-group">
+                        <label for="Input_PhoneNumber" class="form-label">Número de Telefone</label>
+                        <input type="tel" id="Input_PhoneNumber" name="Input.PhoneNumber" class="form-control" value="@Model.Input.PhoneNumber" />
+                        <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Input_Description" class="form-label">Descrição</label>
+@*                         <textarea id="Input_Description" name="Input.Description" class="form-control" rows="5">@Model.Input.Description</textarea>
+                        <span asp-validation-for="Input.Description" class="text-danger"></span> *@
+                    </div>
+                </div>
+
+                @* <div class="tab-content" id="private-data">
+                    @if (Model.HasPassword)
+                    {
+                        <div class="form-group">
+                            <label for="Input_CurrentPassword" class="form-label">Password:</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="Input_CurrentPassword" name="Input.CurrentPassword" class="form-control" value="************" readonly />
+                                <button type="button" class="edit-icon" id="edit-password-btn">✏️</button>
+                            </div>
+                        </div>
+                        <div class="password-change-fields" id="password-change-fields">
+                            <div class="form-group">
+                                <label for="Input_OldPassword" class="form-label">Password antiga:</label>
+                                <input type="password" id="Input_OldPassword" name="Input.OldPassword" class="form-control" />
+                                <span asp-validation-for="Input.OldPassword" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="Input_NewPassword" class="form-label">Nova Password:</label>
+                                <input type="password" id="Input_NewPassword" name="Input.NewPassword" class="form-control" />
+                                <span asp-validation-for="Input.NewPassword" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label for="Input_ConfirmPassword" class="form-label">Confirmar Password:</label>
+                                <input type="password" id="Input_ConfirmPassword" name="Input.ConfirmPassword" class="form-control" />
+                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group">
+                            <label class="form-label">Password:</label>
+                            <div class="input-with-icon">
+                                <input type="text" class="form-control" value="Login externo - sem password local" readonly />
+                            </div>
+                            <small class="text-muted">Você está utilizando um login externo, não é possível alterar a senha.</small>
+                        </div>
+                    }
+
+                    <div class="deactivate-account">
+                        <h3 class="deactivate-title">Desativar Conta</h3>
+                        <p class="deactivate-text">
+                            Atenção: Desativar a sua conta removerá o seu acesso a esta plataforma. Esta ação não pode ser desfeita facilmente.
+                        </p>
+                        <button type="button" id="deactivate-account-btn" class="btn-danger">Desativar Conta</button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancel-edit-btn" class="btn-cancel">Cancelar</button>
+                    <button type="submit" class="btn-primary">Salvar Alterações</button>
+                </div> *@
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="deactivate-modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Confirmar Desativação</h3>
+            <p>Tem certeza que deseja desativar sua conta? Esta ação não pode ser desfeita facilmente.</p>
+            <div class="modal-buttons">
+                <button type="button" id="cancel-deactivate-btn" class="btn-cancel">Cancelar</button>
+                <form method="post" asp-page-handler="DeactivateAccount">
+                    <button type="submit" class="btn-danger">Confirmar Desativação</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sidebar">
+        <h3 class="sidebar-title">Filtros</h3>
+        <p class="sidebar-subtitle">Ordenar Por:</p>
+        <div class="filter-option active">Relevância</div>
+        <div class="filter-option">Categoria</div>
+        <div class="filter-option">Distância</div>
+    </div>
+
+    <div class="products">
+        <div class="product-item">
+            <img src="/Images/placeholder.jpg" alt="Roupa Jovem" class="product-img">
+            <div class="product-info">
+                <div class="product-title">Roupa para jovem em segunda mão</div>
+                <div class="product-desc">
+                    O meu filho cresceu com a puberdade e já não lhe serve a roupa, estou a doar em conjunto ou em peças para quem precisar. Tenho calças, camisolas e casacos em bom estado.
+                </div>
+            </div>
+            <div class="product-meta">
+                <div>
+                    <div class="product-location">Setúbal</div>
+                    <div class="product-date">Postado em: 01/12/2024</div>
+                </div>
+                <div class="product-category">Roupa</div>
+            </div>
+        </div>
+
+        <div class="product-item">
+            <img src="/Images/placeholder.jpg" alt="Pijamas" class="product-img">
+            <div class="product-info">
+                <div class="product-title">Pijamas para quem precisar</div>
+                <div class="product-desc">
+                    Tenho vários pijamas de vários tamanhos para quem precisar. São todos em bom estado e apenas foram usados algumas vezes. Ideal para famílias com crianças.
+                </div>
+            </div>
+            <div class="product-meta">
+                <div>
+                    <div class="product-location">Setúbal</div>
+                    <div class="product-date">Postado em: 30/11/2024</div>
+                </div>
+                <div class="product-category">Roupa</div>
+            </div>
+        </div>
+
+        <div class="product-item">
+            <img src="/Images/placeholder.jpg" alt="Casacos de Inverno" class="product-img">
+            <div class="product-info">
+                <div class="product-title">Casacos de Inverno para Adultos</div>
+                <div class="product-desc">
+                    Tenho 5 casacos de inverno para adultos em bom estado. Tamanhos variados (S, M, L). Perfeitos para proteger do frio. Posso entregar em Setúbal.
+                </div>
+            </div>
+            <div class="product-meta">
+                <div>
+                    <div class="product-location">Setúbal</div>
+                    <div class="product-date">Postado em: 28/11/2024</div>
+                </div>
+                <div class="product-category">Roupa</div>
+            </div>
+        </div>
     </div>
 </div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
