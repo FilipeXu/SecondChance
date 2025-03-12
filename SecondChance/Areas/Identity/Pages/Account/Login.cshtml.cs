@@ -88,6 +88,12 @@ namespace SecondChance.Areas.Identity.Pages.Account
             /// </summary>
             [Display(Name = "Remember me?")]
             public bool RememberMe { get; set; }
+            
+            /// <summary>
+            /// Option to reactivate a previously deactivated account during login
+            /// </summary>
+            [Display(Name = "Reativar conta desativada")]
+            public bool ReactivateAccount { get; set; }
         }
 
         public async Task OnGetAsync(string returnUrl = null)
@@ -99,7 +105,6 @@ namespace SecondChance.Areas.Identity.Pages.Account
 
             returnUrl ??= Url.Content("~/");
 
-            // Clear the existing external cookie to ensure a clean login process
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -115,19 +120,34 @@ namespace SecondChance.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // Primeiro, verifique se o usuário existe e está ativo
                 var user = await _userManager.FindByEmailAsync(Input.Email);
 
                 if (user != null && !user.IsActive)
                 {
-                    // Se a conta foi desativada, não permita o login
-                    _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
-                    ModelState.AddModelError(string.Empty, "Esta conta foi desativada. Por favor, entre em contato com o administrador para reativá-la.");
-                    return Page();
+                    if (Input.ReactivateAccount)
+                    {
+                        user.IsActive = true;
+                        var updateResult = await _userManager.UpdateAsync(user);
+                        
+                        if (updateResult.Succeeded)
+                        {
+                            _logger.LogInformation("Conta reativada para o usuário: {Email}", Input.Email);
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Falha ao reativar conta: {Email}", Input.Email);
+                            ModelState.AddModelError(string.Empty, "Não foi possível reativar sua conta. Por favor, entre em contato com o administrador.");
+                            return Page();
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Tentativa de login em conta desativada: {Email}", Input.Email);
+                        ModelState.AddModelError(string.Empty, "Esta conta foi desativada. Marque a opção abaixo para reativar sua conta.");
+                        return Page();
+                    }
                 }
 
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
@@ -150,7 +170,6 @@ namespace SecondChance.Areas.Identity.Pages.Account
                 }
             }
 
-            // If we got this far, something failed, redisplay form
             return Page();
         }
     }
