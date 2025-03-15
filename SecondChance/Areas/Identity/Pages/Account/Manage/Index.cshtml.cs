@@ -11,6 +11,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Hosting;
 using SecondChance.Models;
+using SecondChance.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace SecondChance.Areas.Identity.Pages.Account.Manage
 {
@@ -18,36 +24,40 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IProductRepository _productRepository;
 
         public IndexModel(
             UserManager<User> userManager,
-            SignInManager<User> signInManager)
+            SignInManager<User> signInManager,
+            ApplicationDbContext context,
+            IProductRepository productRepository = null)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _productRepository = productRepository ?? new ProductRepository(context);
         }
 
         public User UserProfile { get; set; }
         public string Username { get; set; }
+        public bool IsCurrentUser { get; set; }
+        public string CurrentSort { get; set; }
+        public List<Product> UserProducts { get; set; }
+        public bool HasPassword { get; set; }
 
         [TempData]
         public string StatusMessage { get; set; }
 
         [BindProperty]
         public InputModel Input { get; set; }
-        public bool HasPassword { get; set; }
 
+        [BindProperty]
         public IFormFile ImageFile { get; set; }
 
         public class InputModel
         {
-            [Required(ErrorMessage = "username")]
-            [Display(Name = "Username")]
+            [Required(ErrorMessage = "O nome é obrigatório")]
+            [Display(Name = "Nome Completo")]
             public string FullName { get; set; }
-
-            [Phone]
-            [Display(Name = "Número de telefone")]
-            public string PhoneNumber { get; set; }
 
             [Display(Name = "Imagem")]
             public string Image { get; set; }
@@ -75,32 +85,49 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
 
         private async Task LoadAsync(User user)
         {
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-
             HasPassword = await _userManager.HasPasswordAsync(user);
-
 
             Input = new InputModel
             {
                 FullName = user.FullName,
-                PhoneNumber = phoneNumber,
                 Image = user.Image,
                 Location = user.Location,
                 Description = user.Description
             };
 
             UserProfile = user;
+            IsCurrentUser = User.Identity.IsAuthenticated && 
+                user.Id == _userManager.GetUserId(User);
         }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(string userId = null, string sort = null)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            User user;
+            CurrentSort = sort;
+            
+            if (string.IsNullOrEmpty(userId))
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    return NotFound($"Não foi possível carregar o usuário.");
+                }
+                IsCurrentUser = true;
+            }
+            else
+            {
+                user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return NotFound($"Não foi possível encontrar o usuário com ID '{userId}'.");
+                }
+                IsCurrentUser = User.Identity.IsAuthenticated && 
+                    userId == _userManager.GetUserId(User);
             }
 
             await LoadAsync(user);
+            UserProducts = await _productRepository.GetUserProductsAsync(user.Id, sort);
+            
             return Page();
         }
 
@@ -109,23 +136,15 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Não foi possível carregar o usuário.");
             }
+
             if (!ModelState.IsValid)
             {
                 await LoadAsync(user);
                 return Page();
             }
-            var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
-            if (Input.PhoneNumber != phoneNumber)
-            {
-                var setPhoneResult = await _userManager.SetPhoneNumberAsync(user, Input.PhoneNumber);
-                if (!setPhoneResult.Succeeded)
-                {
-                    StatusMessage = "Erro inesperado ao tentar atualizar o número de telefone.";
-                    return RedirectToPage();
-                }
-            }
+
             if (ImageFile != null && ImageFile.Length > 0)
             {
                 var fileName = Path.GetFileName(ImageFile.FileName);
@@ -141,6 +160,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
 
                 user.Image = "/Images/" + uniqueFileName;
             }
+
             user.Location = Input.Location;
             user.Description = Input.Description;
             user.FullName = Input.FullName;
@@ -149,7 +169,8 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             if (!result.Succeeded)
             {
                 StatusMessage = "Erro inesperado ao tentar atualizar o perfil.";
-                return RedirectToPage();
+                await LoadAsync(user);
+                return Page();
             }
 
             bool hasPassword = await _userManager.HasPasswordAsync(user);
@@ -165,17 +186,15 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
                     await LoadAsync(user);
                     return Page();
                 }
-                else
-                {
-                    await _signInManager.RefreshSignInAsync(user);
-                    StatusMessage = "Seu perfil e senha foram atualizados com sucesso.";
-                    return RedirectToPage();
-                }
             }
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Seu perfil foi atualizado com sucesso";
-            return RedirectToPage();
+            
+            await LoadAsync(user);
+            UserProducts = await _productRepository.GetUserProductsAsync(user.Id, CurrentSort);
+            
+            return Page();
         }
 
         public async Task<IActionResult> OnPostDeactivateAccountAsync()
@@ -183,10 +202,9 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+                return NotFound($"Não foi possível carregar o usuário.");
             }
 
- 
             user.IsActive = false; 
             var result = await _userManager.UpdateAsync(user);
 
