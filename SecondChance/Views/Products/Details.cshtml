@@ -1,60 +1,388 @@
 ﻿@model SecondChance.Models.Product
+@using System.Security.Claims
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = Model.Name;
 }
 
-<h1>Details</h1>
+<style>
+    .product-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px;
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
 
-<div>
-    <h4>Product</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Category)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Category)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Image)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Image)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Location)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PublishDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PublishDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.OwnerId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.OwnerId)
-        </dd>
-    </dl>
+    .image-section {
+        flex: 1;
+        min-width: 300px;
+        max-width: 60%;
+    }
+
+    .main-image-container {
+        position: relative;
+        width: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 450px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+        .main-image:hover {
+            transform: scale(1.02);
+        }
+
+    .thumbnail-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: flex-start;
+    }
+
+    .thumbnail {
+        width: 90px;
+        height: 90px;
+        border-radius: 8px;
+        cursor: pointer;
+        object-fit: cover;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+        .thumbnail:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .thumbnail.active {
+            border-color: #4a89dc;
+        }
+
+    .info-section {
+        flex: 1;
+        min-width: 300px;
+        max-width: 40%;
+    }
+
+    .product-title {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #333;
+        line-height: 1.2;
+    }
+
+    .product-description {
+        margin-bottom: 25px;
+        color: #555;
+        line-height: 1.7;
+        font-size: 16px;
+    }
+
+    .metadata {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .category, .location {
+        font-size: 15px;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .category i, .location i {
+            color: #4a89dc;
+        }
+
+    .donor-info {
+        margin-top: 30px;
+        padding: 25px;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease;
+    }
+
+        .donor-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+        }
+
+    .donor-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .donor-title i {
+            color: #4a89dc;
+        }
+
+    .donor-details {
+        color: #555;
+        line-height: 1.7;
+        font-size: 15px;
+    }
+
+        .donor-details a {
+            color: #4a89dc;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+            .donor-details a:hover {
+                color: #2c5fb8;
+                text-decoration: underline;
+            }
+
+    .donor-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+        .donor-actions .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .donor-actions .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+        .donor-actions .btn-primary {
+            background-color: #4a89dc;
+            border-color: #4a89dc;
+        }
+
+            .donor-actions .btn-primary:hover {
+                background-color: #3b7dd8;
+                border-color: #3b7dd8;
+            }
+
+    .action-buttons {
+        margin-top: 30px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+        .action-buttons .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+            .action-buttons .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+
+    .owner-info {
+        max-width: 1200px;
+        margin: 30px auto 60px;
+        padding: 25px;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .owner-name {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .owner-name a {
+            color: #4a89dc;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+            .owner-name a:hover {
+                color: #2c5fb8;
+                text-decoration: underline;
+            }
+
+    @@media (max-width: 992px) {
+        .product-container {
+            flex-direction: column;
+        }
+
+        .image-section, .info-section {
+            max-width: 100%;
+        }
+
+        .main-image {
+            height: 400px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .metadata {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .main-image {
+            height: 350px;
+        }
+
+        .donor-actions {
+            flex-direction: column;
+        }
+
+            .donor-actions .btn {
+                width: 100%;
+            }
+    }
+</style>
+
+<div class="product-container">
+    <div class="image-section">
+        <div class="main-image-container">
+            <img id="mainImage" src="@(string.IsNullOrEmpty(Model.Image) ? "/Images/placeholder.jpg" : Model.Image)" alt="@Model.Name" class="main-image">
+        </div>
+        <div class="thumbnail-container">
+            @if (Model.ProductImages != null && Model.ProductImages.Any())
+            {
+                var isFirst = true;
+                foreach (var image in Model.ProductImages)
+                {
+                    <img src="@image.ImagePath" alt="Thumbnail" class="thumbnail @(isFirst ? "active" : "")"
+                         onclick="updateMainImage('@image.ImagePath', this)">
+                    isFirst = false;
+                }
+            }
+            else
+            {
+                <img src="@(string.IsNullOrEmpty(Model.Image) ? "/Images/placeholder.jpg" : Model.Image)"
+                     alt="Thumbnail" class="thumbnail active"
+                     onclick="updateMainImage('@(string.IsNullOrEmpty(Model.Image) ? "/Images/placeholder.jpg" : Model.Image)', this)">
+            }
+        </div>
+    </div>
+
+    <div class="info-section">
+        <h1 class="product-title">@Model.Name</h1>
+
+        <p class="product-description">@Model.Description</p>
+
+        <div class="metadata">
+            <div class="category">
+                <i class="fas fa-tag"></i> Categoria: @Model.Category
+            </div>
+            <div class="location">
+                <i class="fas fa-map-marker-alt"></i> Localização: @Model.Location
+            </div>
+        </div>
+
+        <div class="donor-info">
+            <h2 class="donor-title"><i class="fas fa-user"></i> Informação sobre Doador</h2>
+            <div class="donor-details">
+                @if (Model.User != null)
+                {
+                    <p>
+                        <strong>Nome:</strong>
+                        <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.OwnerId">
+                            @(Model.User?.FullName ?? "Utilizador")
+                        </a>
+                    </p>
+                    <p><strong>Localização:</strong> @Model.Location</p>
+                    <p><strong>Membro desde:</strong> @(Model.User?.JoinDate.ToString("dd/MM/yyyy") ?? "N/A")</p>
+                }
+                else
+                {
+                    <p>Informações sobre o doador não disponíveis.</p>
+                }
+            </div>
+
+            @if (User.Identity?.IsAuthenticated == true && Model.OwnerId != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                <div class="donor-actions">
+                    <a class="btn btn-primary">
+                        <i class="fas fa-comments"></i> Contactar o Doador
+                    </a>
+                    <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.OwnerId" class="btn btn-outline-secondary">
+                        <i class="fas fa-user"></i> Ver Perfil
+                    </a>
+                    <a class="btn btn-outline-danger">
+                        <i class="fas fa-flag"></i> Reportar Utilizador
+                    </a>
+                </div>
+            }
+        </div>
+
+        <div class="action-buttons">
+            @if (User.Identity?.IsAuthenticated == true && User.FindFirstValue(ClaimTypes.NameIdentifier) == Model.OwnerId)
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-outline-danger">
+                    <i class="fas fa-trash"></i> Excluir
+                </a>
+            }
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="owner-info">
+    <div class="owner-name">
+        <i class="fas fa-user-circle fa-2x"></i>
+        <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.OwnerId">
+            @(Model.User?.FullName ?? "Utilizador")
+        </a>
+    </div>
 </div>
+
+<script>
+    function updateMainImage(imagePath, thumbnail) {
+        document.getElementById('mainImage').src = imagePath;
+
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.classList.remove('active');
+        });
+
+        if (thumbnail) {
+            thumbnail.classList.add('active');
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const firstThumb = document.querySelector('.thumbnail');
+        if (firstThumb) {
+            firstThumb.classList.add('active');
+        }
+    });
+</script>
