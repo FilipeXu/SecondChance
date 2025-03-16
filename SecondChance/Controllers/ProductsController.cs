@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -114,25 +115,106 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
-        // GET: Products/Create
+        [Authorize]
         public IActionResult Create()
         {
-            return View();
+            var product = new Product();
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                    product.Location = user != null && !string.IsNullOrEmpty(user.Location) ?
+                        user.Location : "Localização não especificada";
+                }
+            }
+
+            return View(product);
         }
 
-        // POST: Products/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,Category,Image,Location,PublishDate,OwnerId")] Product product)
+        [Authorize]
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,Category,Image,PublishDate")] Product product,
+            List<IFormFile> imageFiles, int mainImageIndex = 0)
         {
-            if (ModelState.IsValid)
+            try
             {
+                if (imageFiles == null || imageFiles.Count == 0 || imageFiles.All(f => f.Length == 0))
+                {
+                    ModelState.AddModelError("", "É necessário adicionar pelo menos uma imagem do produto.");
+                    return View(product);
+                }
+
+                product.PublishDate = DateTime.Now;
+
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    product.OwnerId = !string.IsNullOrEmpty(userId) ? userId : "anonymous";
+
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        var user = await _userManager.FindByIdAsync(userId);
+                        product.Location = user != null && !string.IsNullOrEmpty(user.Location) ?
+                            user.Location : "Por definir";
+                    }
+                }
+                else
+                {
+                    product.OwnerId = "anonymous";
+                }
+
+                product.ProductImages = new List<ProductImage>();
+
+                if (mainImageIndex < 0 || mainImageIndex >= imageFiles.Count)
+                    mainImageIndex = 0;
+
+                for (int i = 0; i < imageFiles.Count; i++)
+                {
+                    var currentImage = imageFiles[i];
+                    if (currentImage.Length > 0)
+                    {
+                        var fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(currentImage.FileName);
+                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Images");
+                        var filePath = Path.Combine(uploadsFolder, fileName);
+
+                        if (!Directory.Exists(uploadsFolder))
+                            Directory.CreateDirectory(uploadsFolder);
+
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await currentImage.CopyToAsync(fileStream);
+                        }
+
+                        var imagePath = "/Images/" + fileName;
+                        product.ProductImages.Add(new ProductImage { ImagePath = imagePath });
+
+                        if (i == mainImageIndex)
+                            product.Image = imagePath;
+                    }
+                }
+
+                if (product.ProductImages.Count == 0)
+                {
+                    ModelState.AddModelError("", "É necessário adicionar pelo menos uma imagem válida do produto.");
+                    return View(product);
+                }
+
                 _context.Add(product);
                 await _context.SaveChangesAsync();
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                TempData["Message"] = "Produto criado com sucesso!";
                 return RedirectToAction(nameof(Index));
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erro ao criar produto: " + ex.Message);
+                ModelState.AddModelError("", "Ocorreu um erro ao criar o produto: " + ex.Message);
+            }
+
             return View(product);
         }
 

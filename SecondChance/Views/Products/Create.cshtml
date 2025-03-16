@@ -1,63 +1,349 @@
 ﻿@model SecondChance.Models.Product
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Adicionar Produto";
 }
 
-<h1>Create</h1>
+<style>
+    .create-product-container {
+        background-color: #d3d3d3;
+        border-radius: 8px;
+        padding: 25px;
+        margin: 30px auto;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        max-width: 800px;
+    }
 
-<h4>Product</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-control {
+        background-color: #f5f5f5;
+        border: none;
+        border-radius: 5px;
+        padding: 12px 15px;
+    }
+
+    .field-label {
+        font-weight: 500;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .photo-upload-section {
+        margin-top: 25px;
+    }
+
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .photo-box {
+        width: 100%;
+        padding-bottom: 100%;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .photo-box.add-photo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        color: #888;
+    }
+
+    .photo-box.add-photo::after {
+        content: "+";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 36px;
+    }
+
+    .photo-preview {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .photo-remove {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 22px;
+        height: 22px;
+        color: red;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        z-index: 10;
+        display: none;
+    }
+
+    .photo-set-main {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
+        border-radius: 4px;
+        padding: 3px 6px;
+        font-size: 11px;
+        cursor: pointer;
+        z-index: 10;
+        display: none;
+    }
+
+    .main-photo-badge {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        background-color: rgba(104, 176, 100, 0.9);
+        color: white;
+        border-radius: 4px;
+        padding: 3px 6px;
+        font-size: 11px;
+        z-index: 10;
+        display: none;
+    }
+
+    .submit-button {
+        background-color: #f5f5f5;
+        color: #333;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 25px;
+        font-weight: 500;
+        float: right;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: 10px;
+    }
+
+    .submit-button:hover {
+        background-color: #e5e5e5;
+    }
+
+    .cancel-button {
+        background-color: #f5f5f5;
+        color: #333;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 25px;
+        font-weight: 500;
+        float: right;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: 10px;
+    }
+
+    .cancel-button:hover {
+        background-color: #e5e5e5;
+    }
+
+    .description-textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .two-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+</style>
+
+<div class="create-product-container">
+    <form asp-action="Create" enctype="multipart/form-data" method="post" id="productForm">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="two-columns">
             <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
+                <label class="field-label">Título</label>
+                <input asp-for="Name" class="form-control" placeholder="Nome do produto" required />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
+
             <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Category" class="control-label"></label>
-                <input asp-for="Category" class="form-control" />
+                <label class="field-label">Categoria</label>
+                <select asp-for="Category" class="form-control" required>
+                    <option value="">Selecione uma categoria</option>
+                    <option value="Roupa">Roupa</option>
+                    <option value="Eletrônicos">Eletrônicos</option>
+                    <option value="Móveis">Móveis</option>
+                </select>
                 <span asp-validation-for="Category" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Image" class="control-label"></label>
-                <input asp-for="Image" class="form-control" />
-                <span asp-validation-for="Image" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Location" class="control-label"></label>
-                <input asp-for="Location" class="form-control" />
-                <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PublishDate" class="control-label"></label>
-                <input asp-for="PublishDate" class="form-control" />
-                <span asp-validation-for="PublishDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="OwnerId" class="control-label"></label>
-                <input asp-for="OwnerId" class="form-control" />
-                <span asp-validation-for="OwnerId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
+        </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+        <div class="form-group">
+            <label class="field-label">Descrição</label>
+            <textarea asp-for="Description" class="form-control description-textarea" placeholder="Descreva o produto..." required></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+
+        <input asp-for="Location" type="hidden" />
+
+        <div class="photo-upload-section">
+            <label class="field-label">Adicionar Fotografias</label>
+            <div class="photo-grid">
+                <div class="photo-box photo-preview-box" id="preview1">
+                    <img class="photo-preview" style="display: none;" />
+                    <div class="photo-remove">×</div>
+                    <div class="photo-set-main">Definir como Principal</div>
+                    <div class="main-photo-badge">Principal</div>
+                </div>
+                <div class="photo-box photo-preview-box" id="preview2">
+                    <img class="photo-preview" style="display: none;" />
+                    <div class="photo-remove">×</div>
+                    <div class="photo-set-main">Definir como Principal</div>
+                    <div class="main-photo-badge">Principal</div>
+                </div>
+                <div class="photo-box photo-preview-box" id="preview3">
+                    <img class="photo-preview" style="display: none;" />
+                    <div class="photo-remove">×</div>
+                    <div class="photo-set-main">Definir como Principal</div>
+                    <div class="main-photo-badge">Principal</div>
+                </div>
+                <div class="photo-box photo-preview-box" id="preview4">
+                    <img class="photo-preview" style="display: none;" />
+                    <div class="photo-remove">×</div>
+                    <div class="photo-set-main">Definir como Principal</div>
+                    <div class="main-photo-badge">Principal</div>
+                </div>
+                <div class="photo-box add-photo" id="addPhotoButton"></div>
+            </div>
+            <div id="imageFilesContainer"></div>
+            <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
+            <input type="hidden" id="mainImageIndex" name="mainImageIndex" value="0" />
+            <span id="imageValidationMessage" class="text-danger" style="display: none;">É necessário adicionar pelo menos uma imagem do produto.</span>
+        </div>
+
+        <div style="margin-top: 30px; text-align: right;">
+            <button type="submit" class="submit-button">Adicionar</button>
+            <a asp-action="Index" class="cancel-button">Cancelar</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+
+    }
+
+    <script>
+        $(document).ready(function() {
+            const selectedFiles = [];
+            let mainImageIndex = 0;
+
+            $("#addPhotoButton").click(() => {
+                if (selectedFiles.length < 4) $("#imageUpload").click();
+                else alert("Voce já selecionou o número maximo de 4 imagens!");
+            });
+
+            $(".photo-preview-box").click(function() {
+                const index = parseInt($(this).attr('id').replace('preview', '')) - 1;
+                if (!selectedFiles[index] && selectedFiles.length < 4) $("#imageUpload").click();
+            });
+
+            $(".photo-remove").click(function(e) {
+                e.stopPropagation();
+                const index = parseInt($(this).parent().attr('id').replace('preview', '')) - 1;
+
+                if (index === mainImageIndex) mainImageIndex = 0;
+                else if (index < mainImageIndex) mainImageIndex--;
+
+                selectedFiles.splice(index, 1);
+                updatePreview();
+            });
+
+            $(".photo-set-main").click(function(e) {
+                e.stopPropagation();
+                mainImageIndex = parseInt($(this).parent().attr('id').replace('preview', '')) - 1;
+                $("#mainImageIndex").val(mainImageIndex);
+                updateMainImageIndicator();
+            });
+
+            $("#imageUpload").change(function(e) {
+                const files = e.target.files;
+
+                if (files?.length) {
+                    if (selectedFiles.length === 0) {
+                        mainImageIndex = 0;
+                        $("#mainImageIndex").val(0);
+                    }
+
+                    for (let i = 0; i < files.length && selectedFiles.length < 4; i++) {
+                        selectedFiles.push(files[i]);
+                    }
+
+                    updatePreview();
+                    $(this).val('');
+                }
+            });
+
+            function updatePreview() {
+                $(".photo-preview").hide().attr("src", "");
+                $(".photo-remove, .photo-set-main, .main-photo-badge").hide();
+                $("#imageFilesContainer").empty();
+
+                selectedFiles.forEach((file, i) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        $(`#preview${i + 1} .photo-preview`).attr("src", e.target.result).show();
+                        $(`#preview${i + 1} .photo-remove, #preview${i + 1} .photo-set-main`).show();
+                    };
+                    reader.readAsDataURL(file);
+
+                    const input = $('<input type="file" name="imageFiles" style="display:none;">');
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    input[0].files = dataTransfer.files;
+                    $("#imageFilesContainer").append(input);
+                });
+
+                if (mainImageIndex >= selectedFiles.length && selectedFiles.length > 0) {
+                    mainImageIndex = 0;
+                    $("#mainImageIndex").val(0);
+                }
+
+                updateMainImageIndicator();
+                $("#addPhotoButton").toggle(selectedFiles.length < 4);
+                $("#imageValidationMessage").toggle(selectedFiles.length === 0);
+            }
+
+            function updateMainImageIndicator() {
+                $(".main-photo-badge").hide();
+                if (selectedFiles.length > 0) {
+                    $(`#preview${mainImageIndex + 1} .main-photo-badge`).show();
+                    $("#mainImageIndex").val(mainImageIndex);
+                }
+            }
+
+            $("#productForm").submit(function(e) {
+                if (selectedFiles.length === 0) {
+                    e.preventDefault();
+                    $("#imageValidationMessage").show();
+                    return false;
+                }
+                return true;
+            });
+        });
+    </script>
 }
