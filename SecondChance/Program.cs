@@ -25,11 +25,14 @@ builder.Services.AddIdentity<User, IdentityRole>(options => {
 // Add email sender service
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
+// Register IProductRepository
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 builder.Services.AddRazorPages();
 
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddControllersWithViews(); builder.Services.AddAuthentication()
+builder.Services.AddAuthentication()
     .AddGoogle(options =>
     {
         options.ClientId = "471247438309-fovn71s75jfrmghrh06mhi1g92mmnpv0.apps.googleusercontent.com";
@@ -64,7 +67,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Products}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
 app.Run();

@@ -10,6 +10,6 @@ namespace SecondChance.Data
             : base(options)
         {
         }
-        public DbSet<SecondChance.Models.Product> Products { get; set; } = default!;
+            public DbSet<Product> Products { get; set; } = default!;
     }
 }
