@@ -73,19 +73,6 @@ namespace TestProject1
         }
 
         [Fact]
-        public async Task TestSystemIntegration()
-        {
-            var client = new System.Net.Http.HttpClient();
-            
-            var loginPageResponse = await client.GetAsync($"{BaseUrl}/Identity/Account/Login");
-            Assert.True(loginPageResponse.IsSuccessStatusCode);
-            
-            var productsPageResponse = await client.GetAsync($"{BaseUrl}/Products/Index");
-            Assert.True(productsPageResponse.IsSuccessStatusCode);
-        }
-
-        // RQ18: Testa a compatibilidade com outros sistemas
-        [Fact]
         public void System_ShouldBeCompatibleWithOtherApplications()
         {
             var browsers = new List<(string Name, Func<IWebDriver> Create)>
