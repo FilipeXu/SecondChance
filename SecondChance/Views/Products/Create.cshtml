@@ -1,4 +1,5 @@
 ﻿@model SecondChance.Models.Product
+@using SecondChance.Models
 
 @{
     ViewData["Title"] = "Adicionar Produto";
@@ -6,7 +7,7 @@
 
 <style>
     .create-product-container {
-        background-color: #d3d3d3;
+        background-color: #C4E5C2;
         border-radius: 8px;
         padding: 25px;
         margin: 30px auto;
@@ -53,20 +54,19 @@
     }
 
     .photo-box.add-photo {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 30px;
-        color: #888;
+        background-color: #f5f5f5;
+        border: 2px dashed #ccc;
+        cursor: pointer;
     }
 
     .photo-box.add-photo::after {
-        content: "+";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 36px;
+        content: "";
+    }
+
+    .photo-box.empty-box {
+        background-color: #f5f5f5;
+        border: 2px dashed #ccc;
+        cursor: pointer;
     }
 
     .photo-preview {
@@ -150,10 +150,12 @@
         cursor: pointer;
         transition: all 0.2s ease;
         margin-left: 10px;
+        text-decoration: none;
     }
 
     .cancel-button:hover {
         background-color: #e5e5e5;
+        text-decoration: none;
     }
 
     .description-textarea {
@@ -175,17 +177,14 @@
         <div class="two-columns">
             <div class="form-group">
                 <label class="field-label">Título</label>
-                <input asp-for="Name" class="form-control" placeholder="Nome do produto" required />
+                <input asp-for="Name" class="form-control" placeholder="Nome do produto" required maxlength="100" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
 
             <div class="form-group">
                 <label class="field-label">Categoria</label>
-                <select asp-for="Category" class="form-control" required>
+                <select asp-for="Category" asp-items="Html.GetEnumSelectList<Category>()" class="form-control" required>
                     <option value="">Selecione uma categoria</option>
-                    <option value="Roupa">Roupa</option>
-                    <option value="Eletrônicos">Eletrônicos</option>
-                    <option value="Móveis">Móveis</option>
                 </select>
                 <span asp-validation-for="Category" class="text-danger"></span>
             </div>
@@ -193,7 +192,7 @@
 
         <div class="form-group">
             <label class="field-label">Descrição</label>
-            <textarea asp-for="Description" class="form-control description-textarea" placeholder="Descreva o produto..." required></textarea>
+            <textarea asp-for="Description" class="form-control description-textarea" placeholder="Descreva o produto..." required maxlength="300"></textarea>
             <span asp-validation-for="Description" class="text-danger"></span>
         </div>
 
@@ -201,32 +200,31 @@
 
         <div class="photo-upload-section">
             <label class="field-label">Adicionar Fotografias</label>
-            <div class="photo-grid">
-                <div class="photo-box photo-preview-box" id="preview1">
+            <div class="photo-grid" id="photoGrid">
+                <div class="photo-box empty-box" id="preview1" data-index="0">
                     <img class="photo-preview" style="display: none;" />
                     <div class="photo-remove">×</div>
                     <div class="photo-set-main">Definir como Principal</div>
                     <div class="main-photo-badge">Principal</div>
                 </div>
-                <div class="photo-box photo-preview-box" id="preview2">
+                <div class="photo-box empty-box" id="preview2" data-index="1">
                     <img class="photo-preview" style="display: none;" />
                     <div class="photo-remove">×</div>
                     <div class="photo-set-main">Definir como Principal</div>
                     <div class="main-photo-badge">Principal</div>
                 </div>
-                <div class="photo-box photo-preview-box" id="preview3">
+                <div class="photo-box empty-box" id="preview3" data-index="2">
                     <img class="photo-preview" style="display: none;" />
                     <div class="photo-remove">×</div>
                     <div class="photo-set-main">Definir como Principal</div>
                     <div class="main-photo-badge">Principal</div>
                 </div>
-                <div class="photo-box photo-preview-box" id="preview4">
+                <div class="photo-box empty-box" id="preview4" data-index="3">
                     <img class="photo-preview" style="display: none;" />
                     <div class="photo-remove">×</div>
                     <div class="photo-set-main">Definir como Principal</div>
                     <div class="main-photo-badge">Principal</div>
                 </div>
-                <div class="photo-box add-photo" id="addPhotoButton"></div>
             </div>
             <div id="imageFilesContainer"></div>
             <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
@@ -247,24 +245,21 @@
 
     }
 
-    <script>
+   <script>
         $(document).ready(function() {
             const selectedFiles = [];
             let mainImageIndex = 0;
 
-            $("#addPhotoButton").click(() => {
-                if (selectedFiles.length < 4) $("#imageUpload").click();
-                else alert("Voce já selecionou o número maximo de 4 imagens!");
-            });
-
-            $(".photo-preview-box").click(function() {
-                const index = parseInt($(this).attr('id').replace('preview', '')) - 1;
-                if (!selectedFiles[index] && selectedFiles.length < 4) $("#imageUpload").click();
+            $(".photo-box.empty-box").click(function() {
+                const index = parseInt($(this).attr('data-index'));
+                if (selectedFiles.length < 4) {
+                    $("#imageUpload").click();
+                }
             });
 
             $(".photo-remove").click(function(e) {
                 e.stopPropagation();
-                const index = parseInt($(this).parent().attr('id').replace('preview', '')) - 1;
+                const index = parseInt($(this).parent().attr('data-index'));
 
                 if (index === mainImageIndex) mainImageIndex = 0;
                 else if (index < mainImageIndex) mainImageIndex--;
@@ -275,7 +270,7 @@
 
             $(".photo-set-main").click(function(e) {
                 e.stopPropagation();
-                mainImageIndex = parseInt($(this).parent().attr('id').replace('preview', '')) - 1;
+                mainImageIndex = parseInt($(this).parent().attr('data-index'));
                 $("#mainImageIndex").val(mainImageIndex);
                 updateMainImageIndicator();
             });
@@ -299,6 +294,7 @@
             });
 
             function updatePreview() {
+                $(".photo-box").addClass("empty-box").removeClass("filled");
                 $(".photo-preview").hide().attr("src", "");
                 $(".photo-remove, .photo-set-main, .main-photo-badge").hide();
                 $("#imageFilesContainer").empty();
@@ -306,8 +302,10 @@
                 selectedFiles.forEach((file, i) => {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        $(`#preview${i + 1} .photo-preview`).attr("src", e.target.result).show();
-                        $(`#preview${i + 1} .photo-remove, #preview${i + 1} .photo-set-main`).show();
+                        const previewBox = $(`#preview${i + 1}`);
+                        previewBox.removeClass("empty-box").addClass("filled");
+                        previewBox.find(".photo-preview").attr("src", e.target.result).show();
+                        previewBox.find(".photo-remove, .photo-set-main").show();
                     };
                     reader.readAsDataURL(file);
 
@@ -324,7 +322,6 @@
                 }
 
                 updateMainImageIndicator();
-                $("#addPhotoButton").toggle(selectedFiles.length < 4);
                 $("#imageValidationMessage").toggle(selectedFiles.length === 0);
             }
 

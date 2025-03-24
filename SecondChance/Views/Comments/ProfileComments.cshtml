@@ -1,0 +1,96 @@
+@model IEnumerable<SecondChance.Models.Comment>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Comentários de " + ViewData["ProfileName"];
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Comentários no Perfil de @ViewData["ProfileName"]</h2>
+            <hr />
+            
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form asp-action="Create" method="post">
+                            <input type="hidden" name="profileId" value="@ViewData["ProfileId"]" />
+                            <div class="form-group">
+                                <label for="content">Deixe um comentário:</label>
+                                <textarea name="content" class="form-control" rows="3" required></textarea>
+                            </div>
+                            <div class="form-group mt-2">
+                                <button type="submit" class="btn btn-primary">Enviar Comentário</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-4">
+                    <a asp-area="Identity" asp-page="/Account/Login">Faça login</a> para deixar um comentário.
+                </div>
+            }
+            
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["Error"]
+                </div>
+            }
+            
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info">
+                    Nenhum comentário ainda. Seja o primeiro a comentar!
+                </div>
+            }
+            else
+            {
+                <div class="comments-list">
+                    @foreach (var comment in Model)
+                    {
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="card-title">@comment.Author.FullName</h5>
+                                    <small class="text-muted">@comment.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                                <p class="card-text">@comment.Content</p>
+                                
+                                @if (User.Identity?.IsAuthenticated == true && 
+                                    (comment.AuthorId.ToString() == User.FindFirstValue(ClaimTypes.NameIdentifier) || 
+                                     ViewData["ProfileId"].ToString() == User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                                {
+                                    <div class="text-end">
+                                        <a asp-action="Delete" asp-route-id="@comment.Id" class="btn btn-sm btn-danger">Excluir</a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="mb-4">
+                <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@ViewData["ProfileId"]" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar ao Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('textarea').on('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        });
+    </script>
+} 

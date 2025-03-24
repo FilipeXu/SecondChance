@@ -20,6 +20,7 @@ namespace SecondChance.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly UserManager<User> _userManager;
+        private const int PageSize = 9; 
 
         public ProductsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager)
         {
@@ -28,7 +29,7 @@ namespace SecondChance.Controllers
             _userManager = userManager;
         }
 
-        public async Task<IActionResult> Index(string category, string location, string searchTerm, string sortOrder, string userId)
+        public async Task<IActionResult> Index(string searchTerm, string category, string location, string sortOrder, string userId, int page = 1)
         {
             if (_context.Products == null)
                 return Problem("Entity set 'ApplicationDbContext.Products' is null");
@@ -36,13 +37,19 @@ namespace SecondChance.Controllers
             var query = _context.Products
                 .Include(p => p.ProductImages)
                 .Include(p => p.User)
+                .Where(p => !p.IsDonated) 
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
                 query = query.Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm));
 
             if (!string.IsNullOrEmpty(category) && category != "Todas")
-                query = query.Where(p => p.Category == category);
+            {
+                if (Enum.TryParse<Category>(category, out Category categoryEnum))
+                {
+                    query = query.Where(p => p.Category == categoryEnum);
+                }
+            }
 
             if (!string.IsNullOrEmpty(location) && location != "Todas")
                 query = query.Where(p => p.Location == location);
@@ -63,23 +70,20 @@ namespace SecondChance.Controllers
                 case "date_asc":
                     query = query.OrderBy(p => p.PublishDate);
                     break;
-                case "name_asc":
-                    query = query.OrderBy(p => p.Name);
-                    break;
-                case "name_desc":
-                    query = query.OrderByDescending(p => p.Name);
+                case "relevance":
+                    query = query.OrderByDescending(p => _context.UserRatings
+                        .Where(r => r.RatedUserId == p.OwnerId)
+                        .Average(r => (double?)r.Rating) ?? 0);
                     break;
                 default:
                     query = query.OrderByDescending(p => p.PublishDate);
                     break;
             }
 
-            ViewBag.Categories = await _context.Products
-                .Select(p => p.Category)
-                .Where(c => !string.IsNullOrEmpty(c))
-                .Distinct()
-                .OrderBy(c => c)
-                .ToListAsync();
+            ViewBag.Categories = Enum.GetValues(typeof(Category))
+                .Cast<Category>()
+                .OrderBy(c => c.ToString())
+                .ToList();
 
             ViewBag.Locations = await _context.Products
                 .Select(p => p.Location)
@@ -93,9 +97,23 @@ namespace SecondChance.Controllers
             ViewBag.CurrentLocation = location;
             ViewBag.CurrentSortOrder = sortOrder;
             ViewBag.CurrentUserId = userId;
+            ViewBag.CurrentPage = page;
 
-            return View(await query.ToListAsync());
+            var totalProducts = await query.CountAsync();
+            ViewBag.TotalProducts = totalProducts;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)PageSize);
+            ViewBag.HasPreviousPage = page > 1;
+            ViewBag.HasNextPage = page < ViewBag.TotalPages;
+
+            var products = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            return View(products);
         }
+       
+        
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -126,7 +144,13 @@ namespace SecondChance.Controllers
         [Authorize]
         public IActionResult Create()
         {
-            var product = new Product();
+            var product = new Product
+            {
+                Name = "",
+                Description = "",
+                Location = "Por definir",
+                OwnerId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous"
+            };
 
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -134,8 +158,10 @@ namespace SecondChance.Controllers
                 if (!string.IsNullOrEmpty(userId))
                 {
                     var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-                    product.Location = user != null && !string.IsNullOrEmpty(user.Location) ?
-                        user.Location : "Localização não especificada";
+                    if (user != null && !string.IsNullOrEmpty(user.Location))
+                    {
+                        product.Location = user.Location;
+                    }
                 }
             }
 
@@ -146,7 +172,7 @@ namespace SecondChance.Controllers
         [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Create([Bind("Id,Name,Description,Category,Image,PublishDate")] Product product,
-            List<IFormFile> imageFiles, int mainImageIndex = 0)
+            List<IFormFile>? imageFiles, int mainImageIndex = 0)
         {
             try
             {
@@ -173,6 +199,7 @@ namespace SecondChance.Controllers
                 else
                 {
                     product.OwnerId = "anonymous";
+                    product.Location = "Por definir";
                 }
 
                 product.ProductImages = new List<ProductImage>();
@@ -198,7 +225,8 @@ namespace SecondChance.Controllers
                         }
 
                         var imagePath = "/Images/" + fileName;
-                        product.ProductImages.Add(new ProductImage { ImagePath = imagePath });
+                        var productImage = new ProductImage { ImagePath = imagePath, Product = product };
+                        product.ProductImages.Add(productImage);
 
                         if (i == mainImageIndex)
                             product.Image = imagePath;
@@ -255,7 +283,7 @@ namespace SecondChance.Controllers
         [ValidateAntiForgeryToken]
         [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,Category,Image,PublishDate,OwnerId")] Product product,
-            List<IFormFile> imageFiles, int mainImageIndex = 0, string mainImagePath = "", List<int> removedImageIds = null)
+            List<IFormFile>? imageFiles = null, int mainImageIndex = 0, string? mainImagePath = null, List<int>? removedImageIds = null)
         {
             if (id != product.Id)
                 return NotFound();
@@ -292,11 +320,11 @@ namespace SecondChance.Controllers
                     if (user != null && !string.IsNullOrEmpty(user?.Location))
                         existingProduct.Location = user.Location;
                 }
-                if (removedImageIds != null && removedImageIds.Count > 0)
+                if (removedImageIds?.Any() == true && existingProduct.ProductImages?.Any() == true)
                 {
                     foreach (var imageId in removedImageIds)
                     {
-                        var imageToRemove = existingProduct.ProductImages.FirstOrDefault(img => img.Id == imageId);
+                        var imageToRemove = existingProduct.ProductImages?.FirstOrDefault(img => img.Id == imageId);
                         if (imageToRemove != null)
                         {
                             var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, imageToRemove.ImagePath.TrimStart('/'));
@@ -316,8 +344,9 @@ namespace SecondChance.Controllers
                         }
                     }
 
-                    var remainingImages = existingProduct.ProductImages
-                        .Where(img => !removedImageIds.Contains(img.Id)).ToList();
+                    var remainingImages = existingProduct.ProductImages?
+                        .Where(img => !removedImageIds.Contains(img.Id))
+                        .ToList() ?? new List<ProductImage>();
 
                     if (remainingImages.Any() &&
                         !remainingImages.Any(img => img.ImagePath == existingProduct.Image))
@@ -351,7 +380,8 @@ namespace SecondChance.Controllers
                             }
 
                             var imagePath = "/Images/" + fileName;
-                            existingProduct.ProductImages.Add(new ProductImage { ImagePath = imagePath });
+                            var productImage = new ProductImage { ImagePath = imagePath, Product = existingProduct };
+                            existingProduct.ProductImages.Add(productImage);
 
                             if (i == mainImageIndex)
                                 existingProduct.Image = imagePath;
@@ -467,7 +497,7 @@ namespace SecondChance.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> UserProducts(string userId)
+        public async Task<IActionResult> UserProducts(string userId, int page = 1)
         {
             if (string.IsNullOrEmpty(userId))
                 return NotFound();
@@ -476,17 +506,30 @@ namespace SecondChance.Controllers
             if (user == null)
                 return NotFound();
 
-            var products = await _context.Products
+            var query = _context.Products
                 .Include(p => p.ProductImages)
                 .Include(p => p.User)
                 .Where(p => p.OwnerId == userId)
-                .OrderByDescending(p => p.PublishDate)
-                .ToListAsync();
+                .Where(p => !p.IsDonated)
+                .OrderByDescending(p => p.PublishDate);
 
             ViewBag.FilteredUserName = user.FullName;
             ViewBag.UserId = userId;
-            ViewBag.IsCurrentUser = User.Identity.IsAuthenticated &&
+            ViewBag.CurrentUserId = userId;
+            ViewBag.CurrentPage = page;
+            ViewBag.IsCurrentUser = User.Identity?.IsAuthenticated == true &&
                 User.FindFirstValue(ClaimTypes.NameIdentifier) == userId;
+
+            var totalProducts = await query.CountAsync();
+            ViewBag.TotalProducts = totalProducts;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)PageSize);
+            ViewBag.HasPreviousPage = page > 1;
+            ViewBag.HasNextPage = page < ViewBag.TotalPages;
+
+            var products = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
 
             ViewBag.Categories = await _context.Products
                 .Where(p => p.OwnerId == userId)
@@ -508,6 +551,32 @@ namespace SecondChance.Controllers
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> MarkAsDonated(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            
+            if (product == null)
+                return NotFound();
+                
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (product.OwnerId != userId)
+            {
+                TempData["Message"] = "Não tem permissão para marcar este produto como doado.";
+                return RedirectToAction(nameof(Details), new { id = id });
+            }
+            
+            product.IsDonated = true;
+            product.DonatedDate = DateTime.Now;
+            
+            await _context.SaveChangesAsync();
+            
+            TempData["Message"] = "Produto marcado como doado com sucesso! Obrigado pela sua contribuição!";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
