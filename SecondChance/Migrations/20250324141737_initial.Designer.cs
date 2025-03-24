@@ -12,7 +12,7 @@ using SecondChance.Data;
 namespace SecondChance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250324124757_initial")]
+    [Migration("20250324141737_initial")]
     partial class initial
     {
         /// <inheritdoc />
