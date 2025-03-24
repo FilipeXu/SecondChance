@@ -52,10 +52,9 @@ namespace SecondChance.Services
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
                     Credentials = new NetworkCredential(_fromEmailAddress, _fromEmailPassword),
-                    Timeout = 30000 // 30 seconds timeout
+                    Timeout = 30000
                 };
 
-                // Configurar validação de certificado SSL
                 ServicePointManager.ServerCertificateValidationCallback = 
                     delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) 
                     { return true; };
@@ -68,7 +67,6 @@ namespace SecondChance.Services
             {
                 _logger.LogError(ex, "SMTP Error sending email to {email}. Error: {message}", email, ex.Message);
                 
-                // Verificar se é erro de autenticação baseado na mensagem
                 if (ex.Message.Contains("Authentication Required") || ex.Message.Contains("5.7.0"))
                 {
                     _logger.LogError("Authentication failed. Please check email and password settings.");

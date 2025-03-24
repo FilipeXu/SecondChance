@@ -12,7 +12,7 @@ using SecondChance.Data;
 namespace SecondChance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250316161910_initial")]
+    [Migration("20250324124757_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -158,6 +158,38 @@ namespace SecondChance.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SecondChance.Models.Comment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AuthorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProfileId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("Comments");
+                });
+
             modelBuilder.Entity("SecondChance.Models.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -166,9 +198,8 @@ namespace SecondChance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -178,7 +209,6 @@ namespace SecondChance.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Image")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDonated")
@@ -321,6 +351,38 @@ namespace SecondChance.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("SecondChance.Models.UserRating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RatedUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RaterUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RatedUserId");
+
+                    b.HasIndex("RaterUserId", "RatedUserId")
+                        .IsUnique();
+
+                    b.ToTable("UserRatings");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -372,6 +434,25 @@ namespace SecondChance.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SecondChance.Models.Comment", b =>
+                {
+                    b.HasOne("SecondChance.Models.User", "Author")
+                        .WithMany("WrittenComments")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SecondChance.Models.User", "Profile")
+                        .WithMany("ReceivedComments")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Profile");
+                });
+
             modelBuilder.Entity("SecondChance.Models.Product", b =>
                 {
                     b.HasOne("SecondChance.Models.User", "User")
@@ -392,9 +473,39 @@ namespace SecondChance.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("SecondChance.Models.UserRating", b =>
+                {
+                    b.HasOne("SecondChance.Models.User", "RatedUser")
+                        .WithMany("ReceivedRatings")
+                        .HasForeignKey("RatedUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SecondChance.Models.User", "RaterUser")
+                        .WithMany("GivenRatings")
+                        .HasForeignKey("RaterUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("RatedUser");
+
+                    b.Navigation("RaterUser");
+                });
+
             modelBuilder.Entity("SecondChance.Models.Product", b =>
                 {
                     b.Navigation("ProductImages");
+                });
+
+            modelBuilder.Entity("SecondChance.Models.User", b =>
+                {
+                    b.Navigation("GivenRatings");
+
+                    b.Navigation("ReceivedComments");
+
+                    b.Navigation("ReceivedRatings");
+
+                    b.Navigation("WrittenComments");
                 });
 #pragma warning restore 612, 618
         }

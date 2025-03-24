@@ -43,7 +43,7 @@ namespace SecondChance.Controllers
                     IsActive = true,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     BirthDate = new DateTime(1990, 1, 1),
-                   
+
                 };
 
                 var result = await _userManager.CreateAsync(user, "Test@123456");
@@ -92,7 +92,7 @@ namespace SecondChance.Controllers
                 }
             }
 
-       var mainUser = await _userManager.FindByEmailAsync("test@example.com");
+            var mainUser = await _userManager.FindByEmailAsync("test@example.com");
             var secondaryUser = await _userManager.FindByEmailAsync("secondary@example.com");
             if (!await _context.Products.AnyAsync(p => p.OwnerId == mainUser.Id && p.Name.Contains("Test Product")))
             {
@@ -102,7 +102,7 @@ namespace SecondChance.Controllers
                     {
                         Name = "Test Product 1",
                         Description = "First test product",
-                        Category = "Electronics",
+                        Category = Category.Eletrônicos,
                         PublishDate = DateTime.Now.AddDays(-10),
                         OwnerId = mainUser.Id,
                         Location = mainUser.Location,
@@ -112,7 +112,7 @@ namespace SecondChance.Controllers
                     {
                         Name = "Test Product 2",
                         Description = "Second test product",
-                        Category = "Clothing",
+                        Category = Category.Roupa,
                         PublishDate = DateTime.Now.AddDays(-5),
                         OwnerId = mainUser.Id,
                         Location = mainUser.Location,
@@ -128,7 +128,7 @@ namespace SecondChance.Controllers
                     {
                         Name = "Secondary Test Product",
                         Description = "Secondary user test product",
-                        Category = "Electronics",
+                        Category = Category.Eletrônicos,
                         PublishDate = DateTime.Now.AddDays(-15),
                         OwnerId = secondaryUser.Id,
                         Location = secondaryUser.Location,
@@ -140,17 +140,17 @@ namespace SecondChance.Controllers
                 await _context.SaveChangesAsync();
             }
 
-           
+
             return Ok("Test data created successfully");
         }
 
         [HttpGet("reset-test-database")]
         public async Task<IActionResult> ResetTestDatabase()
         {
-           await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        return Ok("Banco de dados resetado com sucesso");
-           
+            await _context.Database.EnsureDeletedAsync();
+            await _context.Database.EnsureCreatedAsync();
+            return Ok("Banco de dados resetado com sucesso");
+
         }
     }
 }
