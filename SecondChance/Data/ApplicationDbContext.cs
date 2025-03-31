@@ -14,6 +14,8 @@ namespace SecondChance.Data
         }
         public DbSet<SecondChance.Models.Product> Products { get; set; } = default!;
         public DbSet<Comment> Comments { get; set; } = default!;
+
+        public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
         public DbSet<UserReport> UserReports { get; set; } = default!;
         public DbSet<UserRating> UserRatings { get; set; } = default!;
 
