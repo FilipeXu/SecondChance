@@ -53,21 +53,21 @@
         overflow: hidden;
     }
 
-    .photo-box.add-photo {
-        background-color: #f5f5f5;
-        border: 2px dashed #ccc;
-        cursor: pointer;
-    }
+        .photo-box.add-photo {
+            background-color: #f5f5f5;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+        }
 
-    .photo-box.add-photo::after {
-        content: "";
-    }
+            .photo-box.add-photo::after {
+                content: "";
+            }
 
-    .photo-box.empty-box {
-        background-color: #f5f5f5;
-        border: 2px dashed #ccc;
-        cursor: pointer;
-    }
+        .photo-box.empty-box {
+            background-color: #f5f5f5;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+        }
 
     .photo-preview {
         position: absolute;
@@ -135,9 +135,9 @@
         margin-left: 10px;
     }
 
-    .submit-button:hover {
-        background-color: #e5e5e5;
-    }
+        .submit-button:hover {
+            background-color: #e5e5e5;
+        }
 
     .cancel-button {
         background-color: #f5f5f5;
@@ -153,10 +153,10 @@
         text-decoration: none;
     }
 
-    .cancel-button:hover {
-        background-color: #e5e5e5;
-        text-decoration: none;
-    }
+        .cancel-button:hover {
+            background-color: #e5e5e5;
+            text-decoration: none;
+        }
 
     .description-textarea {
         min-height: 120px;
@@ -250,7 +250,7 @@
             }
         </div>
 
-         <div style="margin-top: 30px; text-align: right;">
+        <div style="margin-top: 30px; text-align: right;">
             <button type="submit" class="submit-button">Salvar</button>
             <a asp-action="Index" class="cancel-button">Cancelar</a>
         </div>
@@ -263,7 +263,7 @@
     }
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const MAX_IMAGES = 4;
             let selectedFiles = [];
             let existingImages = [];
@@ -286,7 +286,7 @@
                         existingImages.push({ path: mainImagePath, id: mainImageId });
                     }
                 }
-                $(".existing-images").each(function() {
+                $(".existing-images").each(function () {
                     const imgPath = $(this).val();
                     const imgId = $(this).data("id");
 
@@ -310,14 +310,14 @@
             }
 
             function setupEventHandlers() {
-                $("#addPhotoButton").click(function() {
+                $("#addPhotoButton").click(function () {
                     if (getTotalImagesCount() < MAX_IMAGES) {
                         $("#imageUpload").click();
                     } else {
-                        alert(`Você já selecionou o número máximo de ${MAX_IMAGES} imagens.`);
+                        alert(`Já selecionou o número máximo de ${MAX_IMAGES} imagens.`);
                     }
                 });
-                $(".photo-box").click(function() {
+                $(".photo-box").click(function () {
                     const index = getPreviewIndex($(this));
                     const isUsedSlot = index < getTotalImagesCount();
 
@@ -325,15 +325,15 @@
                         $("#imageUpload").click();
                     }
                 });
-                $(".photo-remove").click(function(e) {
+                $(".photo-remove").click(function (e) {
                     e.stopPropagation();
                     removeImage(getPreviewIndex($(this).parent()));
                 });
-                $(".photo-set-main").click(function(e) {
+                $(".photo-set-main").click(function (e) {
                     e.stopPropagation();
                     setMainImage(getPreviewIndex($(this).parent()));
                 });
-                $("#imageUpload").change(function(e) {
+                $("#imageUpload").change(function (e) {
                     const files = e.target.files;
 
                     if (files && files.length > 0) {
@@ -351,7 +351,7 @@
                         $(this).val('');
                     }
                 });
-                $("#productForm").submit(function() {
+                $("#productForm").submit(function () {
                     updateRemovedImagesHiddenFields();
                     return true;
                 });
@@ -450,7 +450,7 @@
                     const file = selectedFiles[i];
                     const reader = new FileReader();
 
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         $(`#preview${slotIndex + 1} .photo-preview`).attr("src", e.target.result).show();
                         $(`#preview${slotIndex + 1} .photo-remove, #preview${slotIndex + 1} .photo-set-main`).show();
                     }
