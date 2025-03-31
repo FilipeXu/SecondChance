@@ -2,7 +2,7 @@
 @model IndexModel
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = Model.IsCurrentUser ? "Gerenciar Perfil" : $"Perfil de {Model.UserProfile.FullName}";
+    ViewData["Title"] = Model.IsCurrentUser ? "Gerir Perfil" : $"Perfil de {Model.UserProfile.FullName}";
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
@@ -972,7 +972,7 @@
                             </div>
                             @if (Model.CurrentUserRating.HasValue)
                             {
-                                <small class="rating-feedback">Você avaliou com @Model.CurrentUserRating @(Model.CurrentUserRating == 1 ? "estrela" : "estrelas")</small>
+                                <small class="rating-feedback">Avaliou com @Model.CurrentUserRating @(Model.CurrentUserRating == 1 ? "estrela" : "estrelas")</small>
                             }
                         </div>
                     </form>
@@ -991,7 +991,7 @@
             }
             else
             {
-                <a class="add-btn btn">Iniciar Chat</a>
+                <a asp-controller="Chat" asp-action="StartConversation" asp-route-userId="@Model.UserProfile.Id" class="add-btn btn">Iniciar Chat</a>
             }
         </div>
     </div>
@@ -1191,14 +1191,14 @@
             <div class="alert alert-info">
                 @if (Model.IsCurrentUser)
                 {
-                    <h4>Você ainda não tem produtos cadastrados</h4>
-                    <p>Que tal começar a compartilhar alguns itens que você não usa mais?</p>
+                    <h4>Ainda não tens produtos registados</h4>
+                    <p>Que tal começar a compartilhar alguns itens que não usas mais?</p>
                     <a asp-controller="Products" asp-action="Create" class="btn btn-success mt-2">Adicionar Produto</a>
                 }
                 else
                 {
-                    <h4>@Model.UserProfile.FullName ainda não tem produtos cadastrados</h4>
-                    <p>Volte mais tarde para verificar os produtos deste usuário.</p>
+                    <h4>@Model.UserProfile.FullName ainda não tem produtos registados</h4>
+                    <p>Volte mais tarde para verificar os produtos deste utilizador.</p>
                 }
             </div>
         }

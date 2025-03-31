@@ -35,8 +35,11 @@ namespace SecondChance.Migrations
                     JoinDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Location = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    PermanentlyDisabled = table.Column<bool>(type: "bit", nullable: false),
+                    IsAdmin = table.Column<bool>(type: "bit", nullable: false),
+                    IsFirstUser = table.Column<bool>(type: "bit", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -247,6 +250,45 @@ namespace SecondChance.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserReports",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ReportedUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ReporterUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Details = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReportDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsResolved = table.Column<bool>(type: "bit", nullable: false),
+                    Resolution = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResolvedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ResolvedById = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserReports", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserReports_AspNetUsers_ReportedUserId",
+                        column: x => x.ReportedUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserReports_AspNetUsers_ReporterUserId",
+                        column: x => x.ReporterUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_UserReports_AspNetUsers_ResolvedById",
+                        column: x => x.ResolvedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ProductImage",
                 columns: table => new
                 {
@@ -335,6 +377,21 @@ namespace SecondChance.Migrations
                 table: "UserRatings",
                 columns: new[] { "RaterUserId", "RatedUserId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserReports_ReportedUserId",
+                table: "UserReports",
+                column: "ReportedUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserReports_ReporterUserId",
+                table: "UserReports",
+                column: "ReporterUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserReports_ResolvedById",
+                table: "UserReports",
+                column: "ResolvedById");
         }
 
         /// <inheritdoc />
@@ -363,6 +420,9 @@ namespace SecondChance.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserRatings");
+
+            migrationBuilder.DropTable(
+                name: "UserReports");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

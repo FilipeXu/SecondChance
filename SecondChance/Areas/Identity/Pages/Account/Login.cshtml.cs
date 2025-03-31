@@ -131,7 +131,7 @@ namespace SecondChance.Areas.Identity.Pages.Account
                         
                         if (updateResult.Succeeded)
                         {
-                            _logger.LogInformation("Conta reativada para o usuário: {Email}", Input.Email);
+                            _logger.LogInformation("Conta reativada para o utilizador: {Email}", Input.Email);
                         }
                         else
                         {

@@ -1,9 +1,7 @@
 #nullable disable
 
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -72,14 +70,12 @@ namespace SecondChance.Areas.Identity.Pages.Account
             var user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
-                // Para fins de segurança, não revelamos que o usuário não existe
                 return RedirectToPage("./Login");
             }
 
             var result = await _userManager.ResetPasswordAsync(user, Input.Code, Input.Password);
             if (result.Succeeded)
             {
-                // Redirecionar para a página de login após o reset bem-sucedido
                 return RedirectToPage("./Login");
             }
 

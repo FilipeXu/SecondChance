@@ -1,0 +1,442 @@
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    bool isAdmin = currentUser != null && currentUser.IsAdmin;
+}
+
+@model SecondChance.ViewModels.StatisticsViewModel
+
+@{
+    ViewData["Title"] = "Estatísticas da Plataforma";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/apexcharts/dist/apexcharts.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<style>
+    .stats-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .stats-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+        .stats-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stats-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+    .stats-section {
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+
+        .stats-section h2 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+    .summary-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stats-card {
+        flex: 1;
+        min-width: 250px;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        transition: transform 0.2s ease;
+    }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-card.primary {
+            background-color: #4a89dc;
+            color: white;
+        }
+
+        .stats-card.secondary {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .stats-card h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .stats-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stats-card .text {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+    .chart-container {
+        height: 400px;
+        margin: 20px 0;
+    }
+
+    .donation-bar-chart {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 300px;
+        padding: 20px 0;
+        background-color: white;
+        position: relative;
+    }
+
+        .donation-bar-chart::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 60px;
+            width: 100%;
+            height: 1px;
+            background-color: #e0e0e0;
+        }
+
+    .bar-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+
+    .bar {
+        width: 60px;
+        background-color: #e2e2e2;
+        border-radius: 8px 8px 0 0;
+        position: relative;
+        transition: height 0.5s ease;
+        box-shadow: inset 0 -2px 0 rgba(0,0,0,0.05);
+    }
+
+    .bar-value {
+        position: absolute;
+        top: -30px;
+        width: 100%;
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+        color: #555;
+    }
+
+    .bar-label {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #666;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .category-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .category-item {
+        flex: 1;
+        min-width: 200px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+        .category-item .category-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .category-item .category-count {
+            font-size: 18px;
+            color: #4a89dc;
+            font-weight: 700;
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        padding: 8px 16px;
+        border: none;
+        background-color: #f0f0f0;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .tab-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .tab-btn.active {
+            background-color: #4a89dc;
+            color: white;
+        }
+
+    @@media (max-width: 768px) {
+        .summary-cards {
+            flex-direction: column;
+        }
+
+        .bar {
+            width: 40px;
+        }
+
+        .category-stats {
+            flex-direction: column;
+        }
+    }
+
+    .trend-card {
+        background: linear-gradient(135deg, #4a89dc 0%, #5cb85c 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .trend-value {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .trend-indicator {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .trend-up {
+        color: #5cb85c;
+    }
+
+    .trend-down {
+        color: #d9534f;
+    }
+
+    .chart-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="stats-container">
+    <div class="stats-header">
+        <h1>Estatísticas da Plataforma</h1>
+        <p>Análise detalhada do desempenho e métricas da plataforma</p>
+    </div>
+
+    <div class="stats-section">
+        <h2>Resumo Geral</h2>
+        <div class="summary-cards">
+            <div class="stats-card primary">
+                <h3>Total de produtos</h3>
+                <div class="number">@Model.TotalProducts</div>
+            </div>
+            <div class="stats-card secondary">
+                <h3>Doações Concluídas</h3>
+                <div class="number">@Model.TotalDonatedProducts</div>
+            </div>
+            <div class="stats-card primary">
+                <h3>Total de Utilizadores</h3>
+                <div class="number">@Model.TotalUsers</div>
+            </div>
+        </div>
+    </div>
+
+    @if (isAdmin)
+    {
+        <div class="stats-section">
+            <h2>Informações de Moderação</h2>
+            <div class="summary-cards">
+                <div class="stats-card secondary">
+                    <h3>Utilizadores Banidos</h3>
+                    <div class="number">@Model.TotalBannedUsers</div>
+                </div>
+                <div class="stats-card primary">
+                    <h3>Total de Reports</h3>
+                    <div class="number">@Model.TotalReports</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="stats-section">
+        <h2>Dados Temporais</h2>
+        <div class="tabs">
+            <button class="tab-btn active" data-type="total" onclick="toggleChartView('weekly', 'total')">Total Semanal</button>
+            <button class="tab-btn" data-type="total" onclick="toggleChartView('monthly', 'total')">Total Mensal</button>
+            <button class="tab-btn" data-type="donated" onclick="toggleChartView('weekly', 'donated')">Doações Semanais</button>
+            <button class="tab-btn" data-type="donated" onclick="toggleChartView('monthly', 'donated')">Doações Mensais</button>
+        </div>
+        <div class="chart-wrapper">
+            <div id="timeChart"></div>
+        </div>
+    </div>
+
+    <div class="stats-section">
+        <h2>Distribuição por Categoria</h2>
+        <div class="chart-wrapper">
+            <div id="categoryChart"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let timeChart, categoryChart;
+        const weeklyData = @Json.Serialize(Model.WeeklyDonationStats);
+        const monthlyData = @Json.Serialize(Model.MonthlyDonationStats);
+        const weeklyDonatedData = @Json.Serialize(Model.WeeklyDonatedStats);
+        const monthlyDonatedData = @Json.Serialize(Model.MonthlyDonatedStats);
+        const categoryData = @Json.Serialize(Model.CategoryStats);
+
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeCharts();
+        });
+
+        function initializeCharts() {
+            const timeChartOptions = {
+                series: [{
+                    name: 'Produtos',
+                    data: Object.values(weeklyData)
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 350
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 4,
+                        columnWidth: '70%',
+                    }
+                },
+                xaxis: {
+                    categories: Object.keys(weeklyData)
+                },
+                colors: ['#4a89dc'],
+                title: {
+                    text: 'Produtos na plataforma',
+                    align: 'center',
+                    style: {
+                        fontSize: '18px'
+                    }
+                }
+            };
+
+            timeChart = new ApexCharts(document.querySelector("#timeChart"), timeChartOptions);
+            timeChart.render();
+
+            const categoryChartOptions = {
+                series: Object.values(categoryData),
+                chart: {
+                    type: 'donut',
+                    height: 350
+                },
+                labels: Object.keys(categoryData),
+                colors: ['#4a89dc', '#5cb85c', '#f1c40f', '#e74c3c', '#9b59b6'],
+                title: {
+                    text: 'Distribuição por Categoria',
+                    align: 'center',
+                    style: {
+                        fontSize: '18px'
+                    }
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 300
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            categoryChart = new ApexCharts(document.querySelector("#categoryChart"), categoryChartOptions);
+            categoryChart.render();
+        }
+
+        function toggleChartView(view, type) {
+            const data = type === 'donated'
+                ? (view === 'weekly' ? weeklyDonatedData : monthlyDonatedData)
+                : (view === 'weekly' ? weeklyData : monthlyData);
+
+            const title = type === 'donated'
+                ? 'Produtos Doados'
+                : 'Total de Produtos';
+
+            timeChart.updateOptions({
+                series: [{
+                    name: type === 'donated' ? 'Doações' : 'Produtos',
+                    data: Object.values(data)
+                }],
+                xaxis: {
+                    categories: Object.keys(data)
+                },
+                title: {
+                    text: title
+                }
+            });
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.dataset.type === type && btn.textContent.toLowerCase().includes(view)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+    </script>
+}

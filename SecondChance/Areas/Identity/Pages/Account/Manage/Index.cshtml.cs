@@ -159,7 +159,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
                 user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
-                    return NotFound($"Não foi possível carregar o usuário.");
+                    return NotFound($"Não foi possível carregar o utilizador.");
                 }
                 IsCurrentUser = true;
             }
@@ -168,7 +168,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
                 user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                 {
-                    return NotFound($"Não foi possível encontrar o usuário com ID '{userId}'.");
+                    return NotFound($"Não foi possível encontrar o utilizador com ID '{userId}'.");
                 }
                 IsCurrentUser = User.Identity.IsAuthenticated &&
                     userId == _userManager.GetUserId(User);
@@ -187,7 +187,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Não foi possível carregar o usuário.");
+                return NotFound($"Não foi possível carregar o utilizador.");
             }
 
             if (!ModelState.IsValid)
@@ -263,12 +263,12 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
-                return NotFound("Não foi possível carregar o usuário.");
+                return NotFound("Não foi possível carregar o utilizador.");
             }
 
             if (currentUser.Id == ratedUserId)
             {
-                StatusMessage = "Você não pode avaliar seu próprio perfil.";
+                StatusMessage = "Não podes avaliar seu próprio perfil.";
                 return RedirectToPage();
             }
 
@@ -303,7 +303,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Não foi possível carregar o usuário.");
+                return NotFound($"Não foi possível carregar o utilizador.");
             }
 
             user.IsActive = false;
