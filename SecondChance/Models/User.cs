@@ -18,6 +18,10 @@ namespace SecondChance.Models
 
         public ICollection<Comment> ReceivedComments { get; set; }
         public ICollection<Comment> WrittenComments { get; set; }
+
+        public ICollection<ChatMessage> SentMessages { get; set; }
+
+        public ICollection<ChatMessage> ReceivedMessages { get; set; }
         public ICollection<UserRating> ReceivedRatings { get; set; }
         public ICollection<UserRating> GivenRatings { get; set; }
 
@@ -25,6 +29,8 @@ namespace SecondChance.Models
         {
             ReceivedComments = new List<Comment>();
             WrittenComments = new List<Comment>();
+            SentMessages = new List<ChatMessage>();
+            ReceivedMessages = new List<ChatMessage>();
             ReceivedRatings = new List<UserRating>();
             GivenRatings = new List<UserRating>();
         }

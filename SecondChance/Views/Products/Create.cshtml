@@ -53,21 +53,21 @@
         overflow: hidden;
     }
 
-    .photo-box.add-photo {
-        background-color: #f5f5f5;
-        border: 2px dashed #ccc;
-        cursor: pointer;
-    }
+        .photo-box.add-photo {
+            background-color: #f5f5f5;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+        }
 
-    .photo-box.add-photo::after {
-        content: "";
-    }
+            .photo-box.add-photo::after {
+                content: "";
+            }
 
-    .photo-box.empty-box {
-        background-color: #f5f5f5;
-        border: 2px dashed #ccc;
-        cursor: pointer;
-    }
+        .photo-box.empty-box {
+            background-color: #f5f5f5;
+            border: 2px dashed #ccc;
+            cursor: pointer;
+        }
 
     .photo-preview {
         position: absolute;
@@ -135,9 +135,9 @@
         margin-left: 10px;
     }
 
-    .submit-button:hover {
-        background-color: #e5e5e5;
-    }
+        .submit-button:hover {
+            background-color: #e5e5e5;
+        }
 
     .cancel-button {
         background-color: #f5f5f5;
@@ -153,10 +153,10 @@
         text-decoration: none;
     }
 
-    .cancel-button:hover {
-        background-color: #e5e5e5;
-        text-decoration: none;
-    }
+        .cancel-button:hover {
+            background-color: #e5e5e5;
+            text-decoration: none;
+        }
 
     .description-textarea {
         min-height: 120px;
@@ -245,19 +245,19 @@
 
     }
 
-   <script>
-        $(document).ready(function() {
+    <script>
+        $(document).ready(function () {
             const selectedFiles = [];
             let mainImageIndex = 0;
 
-            $(".photo-box.empty-box").click(function() {
+            $(".photo-box.empty-box").click(function () {
                 const index = parseInt($(this).attr('data-index'));
                 if (selectedFiles.length < 4) {
                     $("#imageUpload").click();
                 }
             });
 
-            $(".photo-remove").click(function(e) {
+            $(".photo-remove").click(function (e) {
                 e.stopPropagation();
                 const index = parseInt($(this).parent().attr('data-index'));
 
@@ -268,14 +268,14 @@
                 updatePreview();
             });
 
-            $(".photo-set-main").click(function(e) {
+            $(".photo-set-main").click(function (e) {
                 e.stopPropagation();
                 mainImageIndex = parseInt($(this).parent().attr('data-index'));
                 $("#mainImageIndex").val(mainImageIndex);
                 updateMainImageIndicator();
             });
 
-            $("#imageUpload").change(function(e) {
+            $("#imageUpload").change(function (e) {
                 const files = e.target.files;
 
                 if (files?.length) {
@@ -333,7 +333,7 @@
                 }
             }
 
-            $("#productForm").submit(function(e) {
+            $("#productForm").submit(function (e) {
                 if (selectedFiles.length === 0) {
                     e.preventDefault();
                     $("#imageValidationMessage").show();

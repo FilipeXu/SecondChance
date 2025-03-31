@@ -98,13 +98,13 @@ namespace SecondChance.Controllers
             ViewBag.CurrentSortOrder = sortOrder;
             ViewBag.CurrentUserId = userId;
             ViewBag.CurrentPage = page;
-
+            
             var totalProducts = await query.CountAsync();
             ViewBag.TotalProducts = totalProducts;
             ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)PageSize);
             ViewBag.HasPreviousPage = page > 1;
             ViewBag.HasNextPage = page < ViewBag.TotalPages;
-
+            
             var products = await query
                 .Skip((page - 1) * PageSize)
                 .Take(PageSize)

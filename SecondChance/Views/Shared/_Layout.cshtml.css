@@ -52,3 +52,7 @@ button.accept-policy {
     outline: 2px solid white !important;
     box-shadow: none !important;
 }
+
+main {
+    padding-bottom: 60px;
+}
