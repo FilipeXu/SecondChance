@@ -12,7 +12,7 @@ using SecondChance.Data;
 namespace SecondChance.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250316161910_initial")]
+    [Migration("20250331100840_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -247,7 +247,6 @@ namespace SecondChance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")

@@ -9,7 +9,7 @@ namespace SecondChance.Models
         public DateTime JoinDate { get; set; }
         public string Location { get; set; }
         public string Image { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public bool IsActive { get; set; }
     }
 }
