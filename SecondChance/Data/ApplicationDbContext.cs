@@ -12,9 +12,8 @@ namespace SecondChance.Data
             : base(options)
         {
         }
-        public DbSet<SecondChance.Models.Product> Products { get; set; } = default!;
+        public DbSet<Product> Products { get; set; } = default!;
         public DbSet<Comment> Comments { get; set; } = default!;
-
         public DbSet<ChatMessage> ChatMessages { get; set; } = default!;
         public DbSet<UserReport> UserReports { get; set; } = default!;
         public DbSet<UserRating> UserRatings { get; set; } = default!;
@@ -39,6 +38,20 @@ namespace SecondChance.Data
                 .WithMany(p => p.ProductImages)
                 .HasForeignKey(pi => pi.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.SentMessages)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Receiver)
+                .WithMany(u => u.ReceivedMessages)
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ChatMessage>()
+                .HasIndex(m => m.ConversationId);
 
             modelBuilder.Entity<UserReport>()
                 .HasOne(r => r.ReportedUser)
