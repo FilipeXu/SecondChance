@@ -44,7 +44,7 @@ public class ProductsControllerTests
         Id = 1,
         Name = "Test Product", 
         Description = "Test Description",
-        Category = "Test Category",
+        Category = Category.Roupa,
         Location = "Test Location",
         PublishDate = DateTime.UtcNow,
         Image = "/path/to/image.jpg",

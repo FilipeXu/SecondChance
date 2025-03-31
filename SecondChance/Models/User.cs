@@ -2,7 +2,7 @@
 
 namespace SecondChance.Models
 {
-    public class User: IdentityUser
+    public class User : IdentityUser
     {
         public string FullName { get; set; }
         public DateTime BirthDate { get; set; }
@@ -11,5 +11,17 @@ namespace SecondChance.Models
         public string Image { get; set; }
         public string? Description { get; set; }
         public bool IsActive { get; set; }
+        public ICollection<Comment> ReceivedComments { get; set; }
+        public ICollection<Comment> WrittenComments { get; set; }
+        public ICollection<UserRating> ReceivedRatings { get; set; }
+        public ICollection<UserRating> GivenRatings { get; set; }
+
+        public User()
+        {
+            ReceivedComments = new List<Comment>();
+            WrittenComments = new List<Comment>();
+            ReceivedRatings = new List<UserRating>();
+            GivenRatings = new List<UserRating>();
+        }
     }
 }

@@ -49,19 +49,19 @@
         transition: all 0.2s;
     }
 
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-    }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
 
     .btn-primary {
         background-color: var(--primary-light);
         color: white;
     }
 
-    .btn-primary:hover {
-        background-color: var(--primary-dark);
-    }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
 
     .btn-cancel {
         background-color: #f5f5f5;
@@ -70,18 +70,18 @@
         margin-right: 10px;
     }
 
-    .btn-cancel:hover {
-        background-color: #e0e0e0;
-    }
+        .btn-cancel:hover {
+            background-color: #e0e0e0;
+        }
 
     .btn-danger {
         background-color: #dc3545;
         color: white;
     }
 
-    .btn-danger:hover {
-        background-color: #c82333;
-    }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
 
     .profile-card {
         display: flex;
@@ -123,10 +123,10 @@
         margin-bottom: 3px;
     }
 
-    .profile-location::before {
-        content: '📍';
-        margin-right: 5px;
-    }
+        .profile-location::before {
+            content: '📍';
+            margin-right: 5px;
+        }
 
     .profile-date {
         font-size: 14px;
@@ -153,8 +153,13 @@
         margin-right: 6px;
     }
 
-    .dot-gray { background-color: #888; }
-    .dot-green { background-color: #5cb85c; }
+    .dot-gray {
+        background-color: #888;
+    }
+
+    .dot-green {
+        background-color: #5cb85c;
+    }
 
     .dot-status-text {
         font-size: 14px;
@@ -174,9 +179,9 @@
         transition: transform 0.2s;
     }
 
-    .edit-button:hover {
-        transform: scale(1.1);
-    }
+        .edit-button:hover {
+            transform: scale(1.1);
+        }
 
     .action-buttons {
         position: absolute;
@@ -186,20 +191,17 @@
         gap: 12px;
     }
 
-    .add-btn, .chat-btn {
+    .add-btn {
         background-color: var(--primary-light);
         color: white;
     }
 
-    .add-btn::before {
-        content: '+ ';
-        margin-right: 5px;
-    }
+        .add-btn::before {
+            content: '+ ';
+            margin-right: 5px;
+        }
 
-    .chat-btn::before {
-        content: '💬 ';
-        margin-right: 5px;
-    }
+
 
     .content-row {
         display: flex;
@@ -216,10 +218,11 @@
         box-shadow: var(--shadow-sm);
     }
 
-    .bio-box p {
-        line-height: 1.6;
-        font-size: 15px;
-    }
+        .bio-box p {
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
     .reviews-box {
         flex: 1;
         background-color: var(--bg-lighter);
@@ -245,11 +248,11 @@
         border-bottom: 1px solid var(--border-light);
     }
 
-    .review:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
+        .review:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
 
     .reviewer {
         display: flex;
@@ -283,7 +286,6 @@
         margin: 25px 0;
     }
 
-    /* Formulário e modal */
     .profile-form {
         background-color: white;
         padding: 0;
@@ -293,7 +295,7 @@
         box-shadow: var(--shadow-sm);
         display: none;
     }
-    
+
     .form-group {
         margin-bottom: 20px;
     }
@@ -307,17 +309,17 @@
         transition: border-color 0.2s;
     }
 
-    .form-control:focus {
-        border-color: var(--primary-light);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(106,189,94,0.1);
-    }
+        .form-control:focus {
+            border-color: var(--primary-light);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(106,189,94,0.1);
+        }
 
     .form-label {
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: var(--text-medium);
+        color: var (--text-medium);
     }
 
     .tab-container {
@@ -342,10 +344,10 @@
         transition: background-color 0.3s;
     }
 
-    .tab-btn.active {
-        background-color: #c2e3c2;
-        border-bottom: 3px solid var(--primary);
-    }
+        .tab-btn.active {
+            background-color: #c2e3c2;
+            border-bottom: 3px solid var(--primary);
+        }
 
     .tab-content {
         display: none;
@@ -353,9 +355,9 @@
         background-color: #e0f3e0;
     }
 
-    .tab-content.active {
-        display: block;
-    }
+        .tab-content.active {
+            display: block;
+        }
 
     .password-change-fields {
         margin-top: 15px;
@@ -446,7 +448,6 @@
         gap: 10px;
     }
 
-    /* Mensagens de status */
     .text-danger {
         color: #dc3545;
         font-size: 14px;
@@ -505,21 +506,22 @@
         text-decoration: none;
     }
 
-    .filter-option:hover {
-        background-color: var(--bg-lighter);
-        color: var(--primary);
-        transform: translateY(-2px);
-    }
+        .filter-option:hover {
+            background-color: var(--bg-lighter);
+            color: var (--primary);
+            transform: translateY(-2px);
+        }
 
-    .filter-option.active {
-        background-color: var(--bg-light);
-        color: var(--primary);
-        border-left: 3px solid var(--primary);
-    }
+        .filter-option.active {
+            background-color: var(--bg-light);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
 
-    /* Produtos */
     .products {
-        margin-left: 240px;
+        margin: 0 auto;
+        max-width: 900px;
+        width: 100%;
     }
 
     .product-item {
@@ -533,10 +535,10 @@
         border: 1px solid var(--bg-light);
     }
 
-    .product-item:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
-    }
+        .product-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
 
     .product-img {
         width: 150px;
@@ -585,10 +587,10 @@
         justify-content: flex-end;
     }
 
-    .product-location::before {
-        content: '📍';
-        margin-right: 5px;
-    }
+        .product-location::before {
+            content: '📍';
+            margin-right: 5px;
+        }
 
     .product-date {
         font-size: 13px;
@@ -606,6 +608,324 @@
         color: var (--primary);
         font-weight: 500;
     }
+
+    .rating-display {
+        margin-top: 10px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+    }
+
+    .star-display {
+        color: #ccc;
+        font-size: 20px;
+    }
+
+        .star-display.filled {
+            color: #f8b400;
+        }
+
+    .rating-text {
+        margin-left: 10px;
+        font-size: 14px;
+        color: var(--text-medium);
+    }
+
+    .rating-form-container {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: var(--bg-light);
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+        max-width: 400px;
+    }
+
+    .rating-form-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--primary);
+    }
+
+    .rating-stars {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    .star-label {
+        cursor: pointer;
+    }
+
+        .star-label input[type="radio"] {
+            display: none;
+        }
+
+    .star {
+        font-size: 28px;
+        color: #ccc;
+        transition: transform 0.2s, color 0.2s;
+    }
+
+        .star:hover, .star.selected, .star-label:hover .star {
+            color: #f8b400;
+        }
+
+    .rating-submit {
+        margin-top: 10px;
+        background-color: var(--primary-light);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .current-rating-text {
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--text-medium);
+        font-style: italic;
+    }
+
+    .compact-rating-widget {
+        margin-top: 10px;
+        margin-bottom: 5px;
+        background-color: var(--bg-light);
+        border-radius: 6px;
+        padding: 8px 12px;
+        width: fit-content;
+    }
+
+    .rating-prompt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+        .rating-prompt > span {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-medium);
+        }
+
+    .inline-stars {
+        display: flex;
+    }
+
+    .star-label {
+        cursor: pointer;
+        margin: 0 2px;
+    }
+
+        .star-label input[type="radio"] {
+            display: none;
+        }
+
+    .star {
+        font-size: 22px;
+        color: #ccc;
+        transition: all 0.2s;
+    }
+
+        .star:hover, .star.selected {
+            color: #f8b400;
+            transform: scale(1.15);
+        }
+
+    .star-label:hover .star {
+        color: #f8b400;
+    }
+
+    .rating-feedback {
+        font-size: 13px;
+        color: var(--primary);
+        font-style: italic;
+    }
+
+    .input-group {
+        display: flex;
+        width: 100%;
+    }
+
+    .location-btn {
+        white-space: nowrap;
+        background-color: var(--primary-light);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-left: 10px;
+    }
+
+        .location-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+    .location-container {
+        display: flex;
+        align-items: center;
+    }
+
+    .readonly-input {
+        background-color: #f7f7f7;
+        cursor: not-allowed;
+    }
+
+
+    @@media (max-width: 768px) {
+        .profile-card {
+            flex-direction: column;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .profile-image {
+            margin: 0 auto 15px;
+        }
+
+        .profile-details {
+            align-items: center;
+        }
+
+        .profile-location {
+            justify-content: center;
+        }
+
+        .action-buttons {
+            position: static;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .edit-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .tab-buttons {
+            flex-direction: column;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-cancel {
+            margin-right: 0;
+        }
+
+        .location-container {
+            flex-direction: column;
+        }
+
+        .location-btn {
+            margin-left: 0;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .rating-prompt {
+            justify-content: center;
+        }
+
+        .product-item {
+            flex-direction: column;
+        }
+
+        .product-img {
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+        }
+
+        .product-meta {
+            border-left: none;
+            border-top: 1px solid var(--bg-light);
+            min-width: auto;
+            width: 100%;
+            text-align: left;
+        }
+
+        .product-location {
+            justify-content: flex-start;
+        }
+
+        .product-category {
+            margin-bottom: 10px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .profile-name {
+            font-size: 18px;
+        }
+
+        .profile-location, .profile-date {
+            font-size: 14px;
+        }
+
+        .star-display {
+            font-size: 16px;
+        }
+
+        .rating-text {
+            font-size: 12px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .reviews-title {
+            font-size: 16px;
+        }
+
+        .tab-btn {
+            font-size: 14px;
+            padding: 8px;
+        }
+
+        .form-label {
+            font-size: 14px;
+        }
+
+        .product-item {
+            padding: 10px;
+        }
+
+        .product-img {
+            max-width: 100%;
+            height: 150px;
+        }
+
+        .product-title {
+            font-size: 16px;
+        }
+
+        .product-desc {
+            font-size: 13px;
+        }
+
+        .product-meta {
+            padding: 10px;
+        }
+
+        .btn-sm {
+            width: 100%;
+            margin-bottom: 5px;
+            display: block;
+            text-align: center;
+        }
+    }
 </style>
 
 <div class="container">
@@ -622,13 +942,44 @@
         <div class="profile-details">
             <div class="profile-name">@Model.UserProfile.FullName</div>
             <div class="profile-location">Localização: @Model.UserProfile.Location</div>
-            <div class="profile-date">Membro desde @Model.UserProfile.JoinDate</div>
-            <div class="profile-rating">★★★★☆</div>
-            <div class="status-dots">
-                <div class="dot @(Model.UserProfile.IsActive ? "dot-green" : "dot-gray")"></div>
-                <span class="dot-status-text">@(Model.UserProfile.IsActive ? "Online" : "Offline")</span>
+            <div class="profile-date">Membro desde @Model.UserProfile.JoinDate.ToString("dd/MM/yyyy")</div>
+
+            <div class="rating-display">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <span class="star-display @(i <= Math.Round(Model.AverageRating) ? "filled" : "")">★</span>
+                }
+                <span class="rating-text">@Model.AverageRating.ToString("0.0") (@Model.TotalRatings avaliações)</span>
             </div>
+
+            @if (!Model.IsCurrentUser && User.Identity.IsAuthenticated && Model.CanRate)
+            {
+                <div class="compact-rating-widget">
+                    <form method="post" asp-page-handler="SubmitRating" id="rating-form">
+                        <input type="hidden" name="ratedUserId" value="@Model.UserProfile.Id" />
+                        <div class="rating-prompt">
+                            <span>Avalie:</span>
+                            <div class="inline-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <label class="star-label">
+                                        <input type="radio" name="rating" value="@i"
+                                        @(Model.CurrentUserRating.HasValue && i == Model.CurrentUserRating ? "checked" : "")
+                                               onchange="document.getElementById('rating-form').submit();" />
+                                        <span class="star @(Model.CurrentUserRating.HasValue && i <= Model.CurrentUserRating ? "selected" : "")">★</span>
+                                    </label>
+                                }
+                            </div>
+                            @if (Model.CurrentUserRating.HasValue)
+                            {
+                                <small class="rating-feedback">Você avaliou com @Model.CurrentUserRating @(Model.CurrentUserRating == 1 ? "estrela" : "estrelas")</small>
+                            }
+                        </div>
+                    </form>
+                </div>
+            }
         </div>
+
         @if (Model.IsCurrentUser)
         {
             <button class="edit-button" id="edit-profile-btn" title="Editar Perfil">✏️</button>
@@ -640,12 +991,10 @@
             }
             else
             {
-                <a  class="chat-btn btn">Iniciar Chat</a>
+                <a class="add-btn btn">Iniciar Chat</a>
             }
         </div>
     </div>
-
-
 
     <div class="content-row">
         <div class="bio-box">
@@ -653,29 +1002,33 @@
         </div>
         <div class="reviews-box">
             <h3 class="reviews-title">Avaliações Recentes</h3>
-            <div class="review">
-                <div class="reviewer">
-                    <img src="/Images/placeholder.jpg" alt="Paulo Silva" class="reviewer-img">
-                    <div class="reviewer-name">Paulo Silva</div>
+            @if (Model.RecentComments != null && Model.RecentComments.Any())
+            {
+                foreach (var comment in Model.RecentComments)
+                {
+                    <div class="review">
+                        <div class="reviewer">
+                            <img src="@(string.IsNullOrEmpty(comment.Author.Image) ? "/Images/placeholder.jpg" : comment.Author.Image)" alt="@comment.Author.FullName" class="reviewer-img">
+                            <div class="reviewer-name">@comment.Author.FullName</div>
+                        </div>
+                        <div class="review-text">@comment.Content</div>
+                        <small class="text-muted">@comment.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Nenhum comentário ainda. Seja o primeiro a comentar!
                 </div>
-                <div class="review-text">Muito simpática e responde rápido, muito obrigado @Model.Username!</div>
-            </div>
-            <div class="review">
-                <div class="reviewer">
-                    <img src="/Images/placeholder.jpg" alt="Joana Pais" class="reviewer-img">
-                    <div class="reviewer-name">Joana Pais</div>
-                </div>
-                <div class="review-text">Enviei mensagem e em menos de 3 dias recebi o meu casaco, muito simpática a menina.</div>
-            </div>
-            <div class="review">
-                <div class="reviewer">
-                    <img src="/Images/placeholder.jpg" alt="Gregório Reis" class="reviewer-img">
-                    <div class="reviewer-name">Gregório Reis</div>
-                </div>
-                <div class="review-text">Respondeu rápido ao pedido mas a qualidade da roupa parece ser mais em quarta mão de que em segunda.</div>
+            }
+            <div class="text-center mt-3">
+                <a asp-controller="Comments" asp-action="ProfileComments" asp-route-profileId="@Model.UserProfile.Id" class="btn btn-success">Ver Todos os Comentários</a>
             </div>
         </div>
     </div>
+
+
 
     @if (Model.IsCurrentUser)
     {
@@ -706,8 +1059,14 @@
                         </div>
                         <div class="form-group">
                             <label for="Input_Location" class="form-label">Localização</label>
-                            <input type="text" id="Input_Location" name="Input.Location" class="form-control" value="@Model.Input.Location" />
+                            <div class="location-container">
+                                <input type="text" id="Input_Location" name="Input.Location" class="form-control readonly-input" value="@Model.Input.Location" readonly />
+                                <button type="button" id="get-location-btn" class="location-btn" title="Atualizar localização">
+                                    📍 Atualizar
+                                </button>
+                            </div>
                             <span asp-validation-for="Input.Location" class="text-danger"></span>
+                            <div id="location-status" class="text-muted mt-1" style="display: none;"></div>
                         </div>
                         <div class="form-group">
                             <label for="Input_Description" class="form-label">Descrição</label>
@@ -788,25 +1147,9 @@
 
     <div class="divider"></div>
 
-    <div class="sidebar">
-        <h3 class="sidebar-title">Filtros</h3>
-        <p class="sidebar-subtitle">Ordenar Por:</p>
-        @if (Model.IsCurrentUser || string.IsNullOrEmpty(Model.UserProfile?.Id))
-        {
-            <a href="?sort=relevance" class="filter-option @(Model.CurrentSort == "relevance" || string.IsNullOrEmpty(Model.CurrentSort) ? "active" : "")">Relevância</a>
-            <a href="?sort=category" class="filter-option @(Model.CurrentSort == "category" ? "active" : "")">Categoria</a>
-            <a href="?sort=distance" class="filter-option @(Model.CurrentSort == "distance" ? "active" : "")">Distância</a>
-        }
-        else
-        {
-            <a href="?userId=@Model.UserProfile.Id&sort=relevance" class="filter-option @(Model.CurrentSort == "relevance" || string.IsNullOrEmpty(Model.CurrentSort) ? "active" : "")">Relevância</a>
-            <a href="?userId=@Model.UserProfile.Id&sort=category" class="filter-option @(Model.CurrentSort == "category" ? "active" : "")">Categoria</a>
-            <a href="?userId=@Model.UserProfile.Id&sort=distance" class="filter-option @(Model.CurrentSort == "distance" ? "active" : "")">Distância</a>
-        }
-    </div>
 
 
-    
+
     <div class="products">
         @if (Model.UserProducts != null && Model.UserProducts.Any())
         {
@@ -842,16 +1185,6 @@
                     </div>
                 </div>
             }
-            <div class="mt-3 text-center">
-                @if (Model.IsCurrentUser)
-                {
-                    <a asp-controller="Products" asp-action="Index" class="btn btn-outline-success">Ver todos os meus produtos</a>
-                }
-                else
-                {
-                    <a asp-controller="Products" asp-action="UserProducts" asp-route-userId="@Model.UserProfile.Id" class="btn btn-outline-success">Ver todos os produtos de @Model.UserProfile.FullName</a>
-                }
-            </div>
         }
         else
         {
@@ -873,7 +1206,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const els = {
             editProfileBtn: document.getElementById('edit-profile-btn'),
             cancelEditBtn: document.getElementById('cancel-edit-btn'),
@@ -887,16 +1220,23 @@
             deactivateModal: document.getElementById('deactivate-modal'),
             cancelDeactivateBtn: document.getElementById('cancel-deactivate-btn'),
             imageFile: document.getElementById('imageFile'),
-            imagePreview: document.getElementById('image-preview')
+            imagePreview: document.getElementById('image-preview'),
+            userRatingStars: document.getElementById('user-rating-stars'),
+            stars: document.querySelectorAll('.star'),
+            getLocationBtn: document.getElementById('get-location-btn'),
+            locationInput: document.getElementById('Input_Location'),
+            locationStatus: document.getElementById('location-status')
         };
 
+        console.log('Elementos inicializados:', els);
+        console.log('Botão de editar:', els.editProfileBtn);
 
         if (els.imageFile && els.imagePreview) {
-            els.imageFile.addEventListener('change', function(e) {
+            els.imageFile.addEventListener('change', function (e) {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         els.imagePreview.src = e.target.result;
                         document.querySelector('.profile-image').src = e.target.result;
                     };
@@ -905,37 +1245,53 @@
             });
         }
 
-        els.editProfileBtn.addEventListener('click', function() {
-            els.profileForm.style.display = 'block';
-            els.profileForm.scrollIntoView({behavior: 'smooth'});
-        });
-
-        els.cancelEditBtn.addEventListener('click', function() {
-            els.profileForm.style.display = 'none';
-            els.passwordFields.style.display = 'none';
-        });
-
-
-        els.tabBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                els.tabBtns.forEach(b => b.classList.remove('active'));
-                els.tabContents.forEach(c => c.classList.remove('active'));
-
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
+        if (els.editProfileBtn) {
+            els.editProfileBtn.addEventListener('click', function () {
+                console.log('Botão de editar clicado');
+                if (els.profileForm) {
+                    els.profileForm.style.display = 'block';
+                    els.profileForm.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    console.error('Formulário de perfil não encontrado');
+                }
             });
-        });
+        } else {
+            console.error('Botão de editar não encontrado');
+        }
+
+        if (els.cancelEditBtn) {
+            els.cancelEditBtn.addEventListener('click', function () {
+                els.profileForm.style.display = 'none';
+                if (els.passwordFields) {
+                    els.passwordFields.style.display = 'none';
+                }
+            });
+        }
+
+        if (els.tabBtns && els.tabBtns.length > 0) {
+            els.tabBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    els.tabBtns.forEach(b => b.classList.remove('active'));
+                    els.tabContents.forEach(c => c.classList.remove('active'));
+
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
 
         if (els.editPasswordBtn) {
-            els.editPasswordBtn.addEventListener('click', function() {
-                els.passwordFields.style.display =
-                    els.passwordFields.style.display === 'block' ? 'none' : 'block';
+            els.editPasswordBtn.addEventListener('click', function () {
+                if (els.passwordFields) {
+                    els.passwordFields.style.display =
+                        els.passwordFields.style.display === 'block' ? 'none' : 'block';
+                }
             });
         }
 
         if (els.deactivateBtn) {
-            els.deactivateBtn.addEventListener('click', function() {
+            els.deactivateBtn.addEventListener('click', function () {
                 if (els.deactivateModal) {
                     els.deactivateModal.style.display = 'block';
                 }
@@ -943,31 +1299,96 @@
         }
 
         if (els.cancelDeactivateBtn) {
-            els.cancelDeactivateBtn.addEventListener('click', function() {
+            els.cancelDeactivateBtn.addEventListener('click', function () {
                 if (els.deactivateModal) {
                     els.deactivateModal.style.display = 'none';
                 }
             });
         }
 
-        window.addEventListener('click', function(event) {
+        window.addEventListener('click', function (event) {
             if (els.deactivateModal && event.target === els.deactivateModal) {
                 els.deactivateModal.style.display = 'none';
             }
         });
 
         if (els.statusMessage) {
-            setTimeout(function() {
+            setTimeout(function () {
                 els.statusMessage.style.display = 'none';
             }, 5000);
         }
+        const starLabels = document.querySelectorAll('.star-label');
+        if (starLabels.length > 0) {
+            starLabels.forEach(label => {
+                label.addEventListener('click', function () {
+                    const value = this.querySelector('input').value;
+
+                    document.querySelectorAll('.star').forEach(s => {
+                        s.classList.remove('selected');
+                    });
+
+                    starLabels.forEach(l => {
+                        if (l.querySelector('input').value <= value) {
+                            l.querySelector('.star').classList.add('selected');
+                        }
+                    });
+                });
+            });
+        }
 
         const filterOptions = document.querySelectorAll('.filter-option');
-        filterOptions.forEach(option => {
-            option.addEventListener('click', function(e) {
-                filterOptions.forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
+        if (filterOptions.length > 0) {
+            filterOptions.forEach(option => {
+                option.addEventListener('click', function (e) {
+                    filterOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
             });
-        });
+        }
+
+        if (els.getLocationBtn && els.locationInput) {
+            els.getLocationBtn.addEventListener('click', function () {
+                if (!navigator.geolocation) {
+                    if (els.locationStatus) {
+                        els.locationStatus.textContent = 'Geolocalização não é suportada pelo seu navegador';
+                        els.locationStatus.style.display = 'block';
+                        setTimeout(() => { els.locationStatus.style.display = 'none'; }, 5000);
+                    }
+                    return;
+                }
+
+                if (els.locationStatus) {
+                    els.locationStatus.textContent = 'a Obter a localização...';
+                    els.locationStatus.style.display = 'block';
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    async position => {
+
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=18&addressdetails=1`);
+                        const data = await response.json();
+
+                        const city = data.address.city || data.address.town || data.address.village || '';
+                        const state = data.address.state || '';
+                        const country = data.address.country || '';
+
+                        let locationString = '';
+                        if (city) locationString += city;
+                        if (state) locationString += locationString ? `, ${state}` : state;
+                        if (country) locationString += locationString ? `, ${country}` : country;
+
+                        els.locationInput.value = locationString || `${position.coords.latitude}, ${position.coords.longitude}`;
+
+                        if (els.locationStatus) {
+                            els.locationStatus.textContent = 'Localização atualizada com sucesso!';
+                        }
+
+
+                    },
+
+                );
+            });
+        }
+
     });
 </script>
