@@ -1,0 +1,183 @@
+@model IEnumerable<SecondChance.Models.UserReport>
+
+@{
+    ViewData["Title"] = "Relatórios de Utilizadores";
+}
+
+<style>
+    .card-primary {
+        background-color: #6abd5e;
+        color: white;
+    }
+
+    .card-warning {
+        background-color: #ffc107;
+        color: white;
+    }
+
+
+    .card-header-custom {
+        background-color: #4a8f3e;
+        color: white;
+    }
+
+    .btn-outline-custom {
+        border: 1px solid white;
+        color: white;
+        background-color: transparent;
+    }
+
+    .btn-outline-custom:hover {
+        color: white;
+    }
+
+    .badge-success {
+        background-color: #6abd5e;
+    }
+
+    .badge-danger {
+        background-color: #ffc107;
+        color: white;
+    }
+
+    h1.display-4 {
+        color: #4a8f3e;
+    }
+
+    .table-custom {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .btn-info {
+        background-color: #4a8f3e;
+        border-color: #5a9f50;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background-color: #5a9f50;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="display-4 mb-4">Relatórios de Utilizadores</h1>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="card">
+        <div class="card-header card-header-custom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Lista de Relatórios</h3>
+                <a asp-action="Index" class="btn btn-outline-custom">Voltar ao Painel</a>
+            </div>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-custom">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Utilizador Reportado</th>
+                                <th>Status da Conta</th>
+                                <th>Reportado Por</th>
+                                <th>Motivo</th>
+                                <th>Data</th>
+                                <th>Status do Relatório</th>
+                                <th>Resolvido Por</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var report in Model)
+                            {
+                                <tr class="@(report.IsResolved ? "" : "table-warning")">
+                                    <td>@report.Id</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="@(string.IsNullOrEmpty(report.ReportedUser.Image) ? "/Images/placeholder.jpg" : report.ReportedUser.Image)" 
+                                                alt="@report.ReportedUser.FullName" class="rounded-circle me-2" 
+                                                style="width: 40px; height: 40px; object-fit: cover;">
+                                            <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@report.ReportedUserId">
+                                                @report.ReportedUser.FullName
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!report.ReportedUser.PermanentlyDisabled)
+                                        {
+                                            <span class="badge badge-success">Ativa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Desativada</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@report.ReporterUserId">
+                                            @report.ReporterUser.FullName
+                                        </a>
+                                    </td>
+                                    <td>@report.Reason</td>
+                                    <td>@report.ReportDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (report.IsResolved)
+                                        {
+                                            <span class="badge badge-success">Resolvido</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-danger">Pendente</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (report.IsResolved)
+                                        {
+                                            <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@report.ResolvedById">
+                                                @report.ResolvedBy.FullName
+                                            </a>
+                                            <br />
+                                            <small class="text-muted">@report.ResolvedDate?.ToString("dd/MM/yyyy HH:mm")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-action="ReportDetails" asp-route-id="@report.Id" class="btn btn-sm btn-info">Detalhes</a>
+                                        @if (!report.IsResolved)
+                                        {
+                                            <a asp-action="ReportDetails" asp-route-id="@report.Id" class="btn btn-sm badge-danger">Resolver</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Não existe relatórios de Utilizadores
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,212 @@
+@model SecondChance.Models.UserReport
+
+@{
+    ViewData["Title"] = "Detalhes do Relatório";
+}
+
+<style>
+    .card-primary {
+        background-color: #6abd5e;
+        color: white;
+    }
+
+    .card-warning {
+        background-color: #ffc107;
+        color: white;
+    }
+
+    .card-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .card-header-custom {
+        background-color: #4a8f3e;
+        color: white;
+    }
+
+    .btn-outline-custom {
+        border: 1px solid white;
+        color: white;
+        background-color: transparent;
+    }
+
+    .btn-outline-custom:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .badge-success {
+        background-color: #6abd5e;
+    }
+
+    .badge-danger {
+        background-color: #ffc107;
+    }
+
+    h1.display-4 {
+        color: #4a8f3e;
+    }
+
+    .table-custom {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .btn-info {
+        background-color: #4a8f3e;
+        border-color: #5a9f50;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background-color: #5a9f50;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Detalhes do Relatório #@Model.Id</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header card-header-custom">
+                    <h4>Informações do Relatório</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Motivo:</div>
+                        <div class="col-md-9">@Model.Reason</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Detalhes:</div>
+                        <div class="col-md-9">@Html.Raw(Model.Details?.Replace("\n", "<br />") ?? "Sem detalhes adicionais.")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Data do Relatório:</div>
+                        <div class="col-md-9">@Model.ReportDate.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Status:</div>
+                        <div class="col-md-9">
+                            @if (Model.IsResolved)
+                            {
+                                <span class="badge badge-success">Resolvido</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-danger">Pendente</span>
+                            }
+                        </div>
+                    </div>
+                    @if (Model.IsResolved)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">Resolução:</div>
+                            <div class="col-md-9">@Html.Raw(Model.Resolution?.Replace("\n", "<br />") ?? "Sem detalhes da resolução.")</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">Resolvido Por:</div>
+                            <div class="col-md-9">
+                                <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.ResolvedById">
+                                    @Model.ResolvedBy.FullName
+                                </a>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">Data de Resolução:</div>
+                            <div class="col-md-9">@Model.ResolvedDate?.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            @if (!Model.IsResolved)
+            {
+                <div class="card mb-4">
+                    <div class="card-header card-header-custom">
+                        <h4>Resolver Relatório</h4>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="ResolveReport" method="post">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            
+                            <div class="mb-3">
+                                <label for="resolution" class="form-label">Resolução</label>
+                                <textarea id="resolution" name="resolution" class="form-control" rows="4" required></textarea>
+                                <div class="form-text">Descreva as ações a tomar para resolver este relatório</div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="deactivateUser" name="deactivateUser" value="true">
+                                <label class="form-check-label" for="deactivateUser">
+                                    <span class="text-danger fw-bold">Desativar a conta do utilizador</span>
+                                </label>
+                                <div class="form-text text-danger">
+                                    Esta ação impedirá que o utilizador acesse sua conta ou interaja com a plataforma
+                                    A conta ficará inacessível, mas os dados serão preservados
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-info">Marcar como Resolvido</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header card-header-custom">
+                    <h4>Utilizador Reportado</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <img src="@(string.IsNullOrEmpty(Model.ReportedUser.Image) ? "/Images/placeholder.jpg" : Model.ReportedUser.Image)" 
+                             alt="@Model.ReportedUser.FullName" class="rounded-circle" 
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                    </div>
+                    <h5 class="text-center mb-3">@Model.ReportedUser.FullName</h5>
+                    <div class="d-grid gap-2 mb-3">
+                        <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.ReportedUserId" 
+                           class="btn btn-outline-primary">Ver Perfil</a>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Status da conta:</strong>
+                        @if (Model.ReportedUser.IsActive)
+                        {
+                            <span class="badge badge-success">Ativa</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Desativada</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header card-header-custom">
+                    <h4>Reportado Por</h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <img src="@(string.IsNullOrEmpty(Model.ReporterUser.Image) ? "/Images/placeholder.jpg" : Model.ReporterUser.Image)" 
+                             alt="@Model.ReporterUser.FullName" class="rounded-circle" 
+                             style="width: 100px; height: 100px; object-fit: cover;">
+                    </div>
+                    <h5 class="text-center mb-3">@Model.ReporterUser.FullName</h5>
+                    <div class="d-grid gap-2">
+                        <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.ReporterUserId" 
+                           class="btn btn-outline-primary">Ver Perfil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a asp-action="Reports" class="btn btn-info">Voltar para a Lista</a>
+    </div>
+</div>
