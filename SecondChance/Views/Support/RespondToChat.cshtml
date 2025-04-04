@@ -1,0 +1,349 @@
+@model List<SecondChance.Models.ChatMessage>
+@{
+    ViewData["Title"] = "Responder ao Suporte";
+    var currentAdminId = ViewData["CurrentAdminId"] as string;
+    var currentAdminName = ViewData["CurrentAdminName"] as string;
+    var userId = ViewData["UserId"] as string;
+    var userName = ViewData["UserName"] as string;
+}
+
+<div class="container-fluid mt-3">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="admin-respond-container">
+        <div class="chat-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <a href="@Url.Action("AdminDashboard")" class="back-button me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="chat-user-info d-flex align-items-center">
+                        <div class="user-avatar rounded-circle me-2">
+                            @userName?.Substring(0, 1)
+                        </div>
+                        <div>
+                            <h4 class="mb-0">@userName</h4>
+                            <small class="text-light">Chat de Suporte</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-badge">
+                    <i class="fas fa-shield-alt me-1"></i> Admin: @currentAdminName
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="messageContainer">
+            @if (Model.Any())
+            {
+                @foreach (var message in Model)
+                {
+                    var isAdmin = message.SenderId == currentAdminId;
+                    <div class="message @(isAdmin ? "message-admin" : "message-user")">
+                        <div class="message-content">
+                            @if (!isAdmin && message.SenderId != userId)
+                            {
+                                <div class="message-sender">
+                                    Outro Admin
+                                </div>
+                            }
+                            @if (isAdmin)
+                            {
+                                <div class="message-sender">
+                                    Suporte
+                                </div>
+                            }
+                            <p>@message.Content</p>
+                            <span class="message-time">@message.SentAt.ToString("dd/MM/yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-chat-message">
+                    <img src="https://img.icons8.com/color/96/000000/chat--v1.png" alt="Chat icon" class="mb-3" />
+                    <h4>Nenhuma mensagem</h4>
+                    <p>Este utilizador ainda não iniciou uma conversa.</p>
+                </div>
+            }
+        </div>
+        
+        <div class="chat-input">
+            <form asp-action="SendResponse" method="post" id="responseForm">
+                <input type="hidden" name="userId" value="@userId" />
+                <div class="input-group">
+                    <input type="text" class="form-control" name="content" id="messageInput" placeholder="Digite sua resposta..." autocomplete="off">
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-respond-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 130px);
+        border-radius: 12px;
+        overflow: hidden;
+        max-width: 900px;
+        margin: 0 auto;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+    
+    .chat-header {
+        padding: 16px 20px;
+        background-color: #68B064;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+    }
+    
+    .back-button {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .back-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        background-color: #68B064;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-badge {
+        background-color: rgba(255,255,255,0.2);
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        scrollbar-width: thin;
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+    
+    .message {
+        margin-bottom: 18px;
+        display: flex;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+
+    .message-admin {
+        justify-content: flex-start;
+    }
+    
+    .message-user {
+        justify-content: flex-end;
+    }
+    
+    .message-content {
+        max-width: 70%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        position: relative;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .message-admin .message-content {
+        background-color: white;
+        color: #2c3e50;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .message-user .message-content {
+        background-color: #dcf8c6;
+        color: #2c3e50;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-content p {
+        margin-bottom: 5px;
+        word-wrap: break-word;
+        line-height: 1.5;
+    }
+    
+    .message-time {
+        display: block;
+        font-size: 11px;
+        text-align: right;
+        margin-top: 4px;
+        color: #7f8c8d;
+    }
+    
+    .message-sender {
+        font-size: 13px;
+        font-weight: 600;
+        color: #68B064;
+        margin-bottom: 5px;
+    }
+    
+    .empty-chat-message {
+        text-align: center;
+        color: #7f8c8d;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+    
+    .empty-chat-message h4 {
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+    
+    .chat-input {
+        padding: 16px;
+        background-color: white;
+        border-top: 1px solid #eaeaea;
+    }
+    
+    .chat-input .form-control {
+        border-radius: 24px;
+        padding: 12px 20px;
+        border: 1px solid #e0e0e0;
+        box-shadow: none;
+        transition: all 0.3s;
+        font-size: 15px;
+    }
+    
+    .chat-input .form-control:focus {
+        border-color: #68B064;
+        box-shadow: 0 0 0 0.2rem rgba(104, 176, 100, 0.15);
+    }
+    
+    .send-button {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background-color: #68B064;
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .send-button:hover {
+        background-color: #5a9c56;
+        transform: scale(1.05);
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    @@media (max-width: 768px) {
+        .admin-respond-container {
+            height: calc(100vh - 110px);
+            border-radius: 0;
+            margin: 0 -12px;
+        }
+        
+        .message-content {
+            max-width: 85%;
+        }
+        
+        .admin-badge {
+            display: none;
+        }
+        
+        .chat-messages {
+            padding: 15px;
+        }
+        
+        .chat-input {
+            padding: 12px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageContainer = document.getElementById('messageContainer');
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+        
+        document.getElementById('messageInput').focus();
+        
+        const responseForm = document.getElementById('responseForm');
+        const messageInput = document.getElementById('messageInput');
+        
+        responseForm.addEventListener('submit', function(e) {
+            if (messageInput.value.trim() === '') {
+                e.preventDefault();
+                messageInput.focus();
+            } else {
+                const tempMessage = document.createElement('div');
+                tempMessage.className = 'message message-admin';
+                tempMessage.innerHTML = `
+                    <div class="message-content">
+                        <div class="message-sender">Suporte</div>
+                        <p>${messageInput.value}</p>
+                        <span class="message-time">Enviando...</span>
+                    </div>`;
+                messageContainer.appendChild(tempMessage);
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }
+        });
+    });
+</script> 

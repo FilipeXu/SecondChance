@@ -3,6 +3,7 @@
 
 @{
     var currentUser = await UserManager.GetUserAsync(User);
+    bool isAdmin = currentUser != null && currentUser.IsAdmin;
 }
 
 <!DOCTYPE html>
@@ -40,6 +41,14 @@
                                 <i class="fas fa-info-circle"></i> Sobre nós
                             </a>
                         </li>
+                        @if (!isAdmin)
+                        {
+                            <li class="nav-item" id="supportLink">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Support" asp-action="Index">
+                                    <i class="fas fa-headset"></i> Suporte
+                                </a>
+                            </li>
+                        }
                         <li class="nav-item">
                             <a class="nav-link text-white" asp-area="" asp-controller="Statistics" asp-action="Index">
                                 <i class="fas fa-chart-column"></i> Estatística
