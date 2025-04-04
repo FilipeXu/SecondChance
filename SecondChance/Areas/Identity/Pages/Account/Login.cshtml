@@ -114,6 +114,27 @@
             margin: 16px 0;
             border-top: 1px solid #000;
         }
+
+        .terms-link {
+            color: #68B064;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .modal-content {
+            border-radius: 10px;
+            border: 1px solid #000;
+        }
+
+        .modal-header {
+            background-color: #C4E5C2;
+            border-bottom: 1px solid #000;
+        }
+
+        .modal-footer {
+            background-color: #E8F5E9;
+            border-top: 1px solid #000;
+        }
     </style>
 }
 
@@ -123,12 +144,13 @@
 
 <section class="login-container">
     <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <input type="hidden" id="external-reactivate" name="reactivate" value="false" />
         <div class="d-fleX">
-            <button type="submit" class="btn btn-social btn-google" name="provider" value="Google">
+            <button type="submit" class="btn btn-social btn-google external-login-btn" name="provider" value="Google">
                 <i class="fab fa-google"></i>
                 Google
             </button>
-            <button type="submit" class="btn btn-social btn-facebook" name="provider" value="Facebook">
+            <button type="submit" class="btn btn-social btn-facebook external-login-btn" name="provider" value="Facebook">
                 <i class="fab fa-facebook"></i>
                 Facebook
             </button>
@@ -157,7 +179,7 @@
         </div>
 
         @if (ModelState.ErrorCount > 0 && ViewContext.ViewData.ModelState.Values
-            .Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("Esta conta foi desativada"))))
+        .Any(v => v.Errors.Any(e => e.ErrorMessage.Contains("Esta conta foi desativada"))))
         {
             <div class="mb-3">
                 <div class="checkbox">
@@ -165,7 +187,6 @@
                         <input class="form-check-input" asp-for="Input.ReactivateAccount" />
                         @Html.DisplayNameFor(m => m.Input.ReactivateAccount)
                     </label>
-                    <div class="text-muted small">Marque esta opção para reativar sua conta desativada</div>
                 </div>
             </div>
         }
@@ -174,12 +195,66 @@
             <a id="forgot-password" asp-page="./ForgotPassword">Esqueceu-se da password?</a>
         </p>
         <button type="submit" class="btn-primary">Entrar</button>
-        <div class="footer-text">Ao entrar no site estás a aceitar os termos e condições</div>
+        <div class="footer-text">
+            Ao entrar no site estás a aceitar os
+            <a class="terms-link" data-bs-toggle="modal" data-bs-target="#termsModal">termos e condições</a>
+        </div>
     </form>
 </section>
 
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Termos e Condições - SecondChance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Aceitação dos Termos</h6>
+                <p>Ao registar-se e utilizar a aplicação SecondChance, você concorda com estes termos e condições na sua totalidade. Se não concordar com qualquer parte destes termos, não deverá utilizar a aplicação.</p>
+
+                <h6>2. Registo e Conta</h6>
+                <p>Para utilizar a SecondChance, você deve ter pelo menos 18 anos de idade. Ao criar uma conta, compromete-se a fornecer informações precisas, completas e atualizadas. Você é responsável por manter a confidencialidade da sua palavra-passe e por todas as atividades que ocorrem na sua conta.</p>
+
+                <h6>3. Conteúdo do Utilizador</h6>
+                <p>Você mantém todos os direitos sobre o conteúdo que publica na SecondChance, mas concede-nos uma licença não exclusiva para usar, modificar, exibir e distribuir esse conteúdo na nossa plataforma. Você é responsável por todo o conteúdo que publica e confirma ter todos os direitos necessários para o fazer.</p>
+
+                <h6>4. Conduta do Utilizador</h6>
+                <p>A aplicação não pode ser utilizada para fins ilegais ou não autorizados. Você concorda em não publicar conteúdo que seja falso, enganoso, ofensivo, obsceno ou que viole direitos de terceiros. A SecondChance reserva-se o direito de remover qualquer conteúdo e suspender contas que violem estes termos.</p>
+
+                <h6>5. Transações</h6>
+                <p>A SecondChance não é responsável pelas transações entre utilizadores. É sua responsabilidade verificar os itens antes da compra e garantir métodos de pagamento seguros.</p>
+
+                <h6>6. Privacidade</h6>
+                <p>A sua privacidade é importante para nós. A utilização dos seus dados pessoais está sujeita à nossa Política de Privacidade, que faz parte integrante destes termos.</p>
+
+                <h6>7. Modificações dos Termos</h6>
+                <p>A SecondChance pode alterar estes termos a qualquer momento. As modificações entrarão em vigor assim que forem publicadas. O uso continuado da aplicação após tais alterações constitui a sua aceitação dos novos termos.</p>
+
+                <h6>8. Rescisão</h6>
+                <p>A SecondChance reserva-se o direito de suspender ou encerrar a sua conta a qualquer momento, por qualquer motivo, sem aviso prévio.</p>
+
+                <h6>9. Limitação de Responsabilidade</h6>
+                <p>A SecondChance não será responsável por danos diretos, indiretos, incidentais, consequenciais ou punitivos resultantes do uso ou incapacidade de usar a aplicação.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceitar</button>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function() {
+            $('.external-login-btn').on('click', function() {
+                if ($('#Input_ReactivateAccount').is(':visible') && $('#Input_ReactivateAccount').is(':checked')) {
+                    $('#external-reactivate').val('true');
+                }
+            });
+        });
+    </script>
 }

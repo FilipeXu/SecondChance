@@ -1,23 +1,14 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
-
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Text;
 using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using SecondChance.Models;
 
 namespace SecondChance.Areas.Identity.Pages.Account
@@ -63,6 +54,7 @@ namespace SecondChance.Areas.Identity.Pages.Account
             [DataType(DataType.Date)]
             [Display(Name = "Data de Nascimento")]
             [MinimumAge(18)]
+            [MaximumAge(125)]
             public DateTime BirthDate { get; set; }
 
             [Required]
@@ -94,7 +86,6 @@ namespace SecondChance.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                // Verificar se o email já está em uso
                 var existingUser = await _userManager.FindByEmailAsync(Input.Email);
                 if (existingUser != null)
                 {
@@ -108,9 +99,17 @@ namespace SecondChance.Areas.Identity.Pages.Account
                 user.Image = "Por definir";
                 user.PhoneNumber = "Por definir";
                 user.Description = "Escreva algo sobre si e o seu numero de telemóvel...";
-                user.IsActive=true;
+                user.IsActive = true;
                 user.FullName = Input.FullName;
                 user.BirthDate = Input.BirthDate;
+                user.PermanentlyDisabled = false;
+
+                bool isFirstUser = !_userManager.Users.Any();
+                if (isFirstUser)
+                {
+                    user.IsAdmin = true;
+                    user.IsFirstUser = true;
+                }
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -118,8 +117,6 @@ namespace SecondChance.Areas.Identity.Pages.Account
 
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation("User created a new account with password.");
-
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -148,7 +145,6 @@ namespace SecondChance.Areas.Identity.Pages.Account
                 }
             }
 
-            // Se chegou aqui, algo falhou, exibir o formulário novamente
             return Page();
         }
 

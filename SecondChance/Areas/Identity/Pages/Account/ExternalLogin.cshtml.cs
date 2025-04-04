@@ -1,22 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
-
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using SecondChance.Models;
 
 namespace SecondChance.Areas.Identity.Pages.Account
@@ -72,71 +62,57 @@ namespace SecondChance.Areas.Identity.Pages.Account
         [TempData]
         public string ErrorMessage { get; set; }
 
-        public string Email { get; set; }
-
-        public string JoinDate { get; set; }
-
-        [Required]
-        [Display(Name = "Imagem")]
-        public string Image { get; set; }
-
-        [Required]
-        [Display(Name = "Localidade")]
-        public string Location { get; set; }
-
-        [Required]
-        [Display(Name = "Descricão")]
-        public string Description { get; set; }
-
-        [DataType(DataType.PhoneNumber)]
-        [Display(Name = "Numero de telemovel")]
-        public string PhoneNumber { get; set; }
-
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public class InputModel
         {
-            [Required]
+            [Required(ErrorMessage = "O nome completo é obrigatório")]
             [Display(Name = "Nome Completo")]
             public string FullName { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "A data de nascimento é obrigatória")]
             [DataType(DataType.Date)]
+            [MaximumAge(125, ErrorMessage = "Idade máxima permitida é 125 anos")]
+            [MinimumAge(18, ErrorMessage = "Deve ter pelo menos 18 anos para se registar")]
             [Display(Name = "Data de Nascimento")]
             public DateTime BirthDate { get; set; }
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [EmailAddress]
+            
+            [Required(ErrorMessage = "O email é obrigatório")]
+            [EmailAddress(ErrorMessage = "Email inválido")]
+            [Display(Name = "Email")]
             public string Email { get; set; }
-
+            
+            /// <summary>
+            /// Option to reactivate a previously deactivated account during login
+            /// </summary>
+            [Display(Name = "Reativar conta desativada")]
+            public bool ReactivateAccount { get; set; }
         }
 
         public IActionResult OnGet() => RedirectToPage("./Login");
 
-        public IActionResult OnPost(string provider, string returnUrl = null)
+        public IActionResult OnPost(string provider, string returnUrl = null, bool reactivate = false)
         {
-            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
+            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl, reactivate });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return new ChallengeResult(provider, properties);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null, bool reactivate = false)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
             if (remoteError != null)
             {
-                ErrorMessage = $"Error from external provider: {remoteError}";
+                ErrorMessage = $"Erro do provedor externo: {remoteError}";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
+            
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                ErrorMessage = "Error loading external login information.";
+                ErrorMessage = "Erro ao carregar informações de login externo.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
@@ -144,18 +120,48 @@ namespace SecondChance.Areas.Identity.Pages.Account
             if (!string.IsNullOrEmpty(email))
             {
                 var existingUser = await _userManager.FindByEmailAsync(email);
-                if (existingUser != null && !existingUser.IsActive)
+                if (existingUser != null)
                 {
-                    _logger.LogWarning("Tentativa de login externo com conta desativada: {Email}", email);
-                    ErrorMessage = "Esta conta foi desativada. Por favor, entre em contato com o administrador para mais informações.";
-                    return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                    if (existingUser.PermanentlyDisabled)
+                    {
+                        ErrorMessage = "Esta conta foi permanentemente desativada por um administrador e não pode ser reativada.";
+                        return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                    }
+
+                    if (!existingUser.IsActive)
+                    {
+                        if (reactivate)
+                        {
+                            existingUser.IsActive = true;
+                            var updateResult = await _userManager.UpdateAsync(existingUser);
+                            
+                            if (updateResult.Succeeded)
+                            {
+                                await _signInManager.SignInAsync(existingUser, isPersistent: false, info.LoginProvider);
+                                return LocalRedirect(returnUrl);
+                            }
+                            else
+                            {
+                                foreach (var error in updateResult.Errors)
+                                {
+                                    ModelState.AddModelError(string.Empty, error.Description);
+                                }
+                                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+                            }
+                        }
+                        else
+                        {
+                            ErrorMessage = "Esta conta foi desativada. Por favor, marque a opção para reativá-la e marque a opção de external login desejado.";
+                            return RedirectToPage("./Login", new { email = email, inactive = true, ReturnUrl = returnUrl });
+                        }
+                    }
                 }
             }
 
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             if (result.Succeeded)
             {
-                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
+                _logger.LogInformation("{Name} fez login com o provedor {LoginProvider}.", info.Principal.Identity.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
             if (result.IsLockedOut)
@@ -168,13 +174,48 @@ namespace SecondChance.Areas.Identity.Pages.Account
                 ProviderDisplayName = info.ProviderDisplayName;
                 if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
                 {
-                    Input = new InputModel
-                    {
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email)
-                    };
+                    Input = new InputModel { Email = info.Principal.FindFirstValue(ClaimTypes.Email) };
                 }
                 return Page();
             }
+        }
+
+        public async Task<IActionResult> OnPostCallbackAsync(string returnUrl = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+
+            if (!string.IsNullOrEmpty(TempData["UserEmail"] as string) && Input.ReactivateAccount)
+            {
+                var email = TempData["UserEmail"] as string;
+                var user = await _userManager.FindByEmailAsync(email);
+                
+                if (user != null && !user.PermanentlyDisabled)
+                {
+                    user.IsActive = true;
+                    var updateResult = await _userManager.UpdateAsync(user);
+                    
+                    if (updateResult.Succeeded)
+                    {
+                        var info = await _signInManager.GetExternalLoginInfoAsync();
+                        if (info != null)
+                        {
+                            await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
+                            return LocalRedirect(returnUrl);
+                        }
+                    }
+                }
+            }
+            
+            var externalInfo = await _signInManager.GetExternalLoginInfoAsync();
+            if (externalInfo == null)
+            {
+                ErrorMessage = "Erro ao processar o login externo.";
+                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+            }
+            
+            ReturnUrl = returnUrl;
+            ProviderDisplayName = externalInfo.ProviderDisplayName;
+            return Page();
         }
 
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
@@ -183,12 +224,29 @@ namespace SecondChance.Areas.Identity.Pages.Account
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                ErrorMessage = "Error loading external login information during confirmation.";
+                ErrorMessage = "Erro ao carregar informações de login externo durante a confirmação.";
                 return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
             }
 
             if (ModelState.IsValid)
             {
+                var existingUser = await _userManager.FindByEmailAsync(Input.Email);
+                if (existingUser != null)
+                {
+                    var existingLogins = await _userManager.GetLoginsAsync(existingUser);
+                    var existingLoginForProvider = existingLogins.FirstOrDefault(
+                        el => el.LoginProvider == info.LoginProvider);
+                    
+                    if (existingLoginForProvider != null)
+                    {
+                        await _signInManager.SignInAsync(existingUser, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
+                    
+                    ModelState.AddModelError("Input.Email", "Este email já está registrado. Por favor, faça login com sua senha ou utilize outro email.");
+                    return Page();
+                }
+
                 var user = CreateUser();
                 user.Location = "Por definir";
                 user.JoinDate = DateTime.Now;
@@ -198,6 +256,15 @@ namespace SecondChance.Areas.Identity.Pages.Account
                 user.IsActive = true;
                 user.FullName = Input.FullName;
                 user.BirthDate = Input.BirthDate;
+                user.PermanentlyDisabled = false;
+                user.EmailConfirmed = true;
+
+                bool isFirstUser = !_userManager.Users.Any();
+                if (isFirstUser)
+                {
+                    user.IsAdmin = true;
+                    user.IsFirstUser = true;
+                }
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -208,25 +275,7 @@ namespace SecondChance.Areas.Identity.Pages.Account
                     result = await _userManager.AddLoginAsync(user, info);
                     if (result.Succeeded)
                     {
-                        _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
-
-                        var userId = await _userManager.GetUserIdAsync(user);
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                        var callbackUrl = Url.Page(
-                            "/Account/ConfirmEmail",
-                            pageHandler: null,
-                            values: new { area = "Identity", userId = userId, code = code },
-                            protocol: Request.Scheme);
-
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                        if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                        {
-                            return RedirectToPage("./RegisterConfirmation", new { Email = Input.Email });
-                        }
-
+                        
                         await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
                         return LocalRedirect(returnUrl);
                     }
@@ -250,9 +299,9 @@ namespace SecondChance.Areas.Identity.Pages.Account
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                    $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the external login page in /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
+                throw new InvalidOperationException($"Não foi possível criar uma instância de '{nameof(User)}'. " +
+                    $"Certifique-se de que '{nameof(User)}' não é uma classe abstrata e tem um construtor sem parâmetros, ou " +
+                    $"substitua a página de login externo em /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
             }
         }
 
@@ -260,7 +309,7 @@ namespace SecondChance.Areas.Identity.Pages.Account
         {
             if (!_userManager.SupportsUserEmail)
             {
-                throw new NotSupportedException("The default UI requires a user store with email support.");
+                throw new NotSupportedException("A UI padrão requer uma loja de usuário com suporte a e-mail.");
             }
             return (IUserEmailStore<User>)_userStore;
         }
