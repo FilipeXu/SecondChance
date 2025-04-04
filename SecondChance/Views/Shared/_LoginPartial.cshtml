@@ -4,12 +4,28 @@
 
 @{
     var currentUser = await UserManager.GetUserAsync(User);
+    bool isAdmin = currentUser != null && currentUser.IsAdmin;
 }
 
+<script>
+    window.isUserAdmin = @(isAdmin ? "true" : "false");
+</script>
 
 @if (SignInManager.IsSignedIn(User))
 {
-
+    @if (isAdmin)
+    {
+        <li class="nav-item">
+            <a class="nav-link text-white" asp-controller="Moderator" asp-action="Index" title="Moderação">
+                <i class="fas fa-shield-alt"></i> Moderação
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-white" asp-controller="Support" asp-action="AdminDashboard" title="Suporte Admin">
+                <i class="fas fa-headset"></i> Suporte Admin
+            </a>
+        </li>
+    }
     <li class="nav-item">
         <a class="nav-link text-white" asp-controller="Chat" asp-action="Index" title="Mensagens">
             <i class="fas fa-comments"></i> Mensagens

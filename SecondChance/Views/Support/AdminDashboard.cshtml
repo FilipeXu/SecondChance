@@ -1,0 +1,253 @@
+@model List<SecondChance.ViewModels.SupportChatViewModel>
+@{
+    ViewData["Title"] = "Dashboard de Suporte Admin";
+}
+
+<div class="container-fluid mt-4">
+    <div class="admin-dashboard">
+        <div class="dashboard-header d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-headset me-2"></i> Dashboard de Suporte</h2>
+                <p class="text-muted">Responda às dúvidas dos utilizadores</p>
+            </div>
+        </div>
+        
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        
+        <div class="chat-list-container">
+            <h4 class="mb-4"><i class="fas fa-comments me-2"></i>Chats de Suporte</h4>
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Utilizador</th>
+                                <th>Última Mensagem</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var chat in Model)
+                            {
+                                <tr class="chat-row">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(chat.UserImage))
+                                            {
+                                                <img src="@chat.UserImage" alt="@chat.UserName" class="user-avatar me-3">
+                                            }
+                                            else
+                                            {
+                                                <div class="default-avatar me-3">
+                                                    @(string.IsNullOrEmpty(chat.UserName) ? "?" : chat.UserName.Substring(0, 1))
+                                                </div>
+                                            }
+                                            <div>
+                                                <div class="user-name">@chat.UserName</div>
+                                                @if (chat.UnreadCount > 0)
+                                                {
+                                                    <span class="unread-badge">@chat.UnreadCount nova(s)</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="last-message-time">
+                                            <i class="far fa-clock me-1"></i> @chat.LastMessageTime.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <a href="@Url.Action("RespondToChat", new { userId = chat.UserId })" class="btn-respond">
+                                            <i class="fas fa-reply me-1"></i> Responder
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Nenhum chat de suporte</h3>
+                    <p>Não há nenhuma solicitação de suporte no momento.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-dashboard {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .dashboard-header {
+        margin-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+    
+    .dashboard-header h2 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .chat-list-container {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+    }
+    
+    .chat-list-container h4 {
+        color: #2c3e50;
+        font-weight: 600;
+        border-bottom: 1px solid #f1f1f1;
+        padding-bottom: 15px;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        border-top: none;
+        border-bottom: 2px solid #e9ecef;
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 15px 10px;
+    }
+    
+    .chat-row {
+        transition: all 0.2s;
+    }
+    
+    .chat-row:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .user-avatar, .default-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .default-avatar {
+        background-color: #68B064;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 2px;
+    }
+    
+    .unread-badge {
+        background-color: #68B064;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    
+    .last-message-time {
+        color: #7f8c8d;
+        font-size: 14px;
+    }
+    
+    .btn-respond {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #68B064;
+        color: white;
+        border-radius: 20px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-respond:hover {
+        background-color: #5a9c56;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        color: white;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-icon {
+        font-size: 60px;
+        color: #68B064;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .empty-state h3 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    .empty-state p {
+        color: #7f8c8d;
+        font-size: 16px;
+    }
+    
+    @@media (max-width: 768px) {
+        .chat-list-container {
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .user-avatar, .default-avatar {
+            width: 38px;
+            height: 38px;
+            font-size: 16px;
+        }
+        
+        .btn-respond {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+    }
+</style>
