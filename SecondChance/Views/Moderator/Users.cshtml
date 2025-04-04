@@ -1,0 +1,181 @@
+@model IEnumerable<SecondChance.Models.User>
+
+@{
+    ViewData["Title"] = "Gerir Utilizadores";
+}
+
+<style>
+    .card-primary {
+        background-color: #6abd5e;
+        color: white;
+    }
+
+    .card-warning {
+        background-color: #ffc107;
+        color: white;
+    }
+
+    .card-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .card-header-custom {
+        background-color: #4a8f3e;
+        color: white;
+    }
+
+    .btn-outline-custom {
+        border: 1px solid white;
+        color: white;
+        background-color: transparent;
+    }
+
+    .btn-outline-custom:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .badge-success {
+        background-color: #6abd5e;
+    }
+
+    .badge-danger {
+        background-color: #ffc107;
+    }
+
+    h1.display-4 {
+        color: #4a8f3e;
+    }
+
+    .table-custom {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .btn-info {
+        background-color: #4a8f3e;
+        border-color: #5a9f50;
+        color: white;
+    }
+
+    .btn-info:hover {
+        background-color: #5a9f50;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="display-4 mb-4">Gerir Utilizadores</h1>
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="card">
+        <div class="card-header card-header-custom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Lista de Utilizadores</h3>
+                <a asp-action="Index" class="btn btn-outline-custom">Voltar ao Painel</a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-custom">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Data de Registo</th>
+                            <th>Status</th>
+                            <th>Admin</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="@(string.IsNullOrEmpty(user.Image) ? "/Images/placeholder.jpg" : user.Image)" alt="@user.FullName" 
+                                            class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <div>
+                                            @user.FullName
+                                            @if (user.IsFirstUser)
+                                            {
+                                                <span class="badge bg-dark ms-1">Fundador</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@user.JoinDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (!user.PermanentlyDisabled)
+
+                                    {
+                                        <span class="badge badge-success">Ativo</span>
+                                    }
+
+                                    else
+
+                                    {
+                                        <span class="badge bg-danger">Desativado</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.IsAdmin)
+
+                                    {
+                                        <span class="badge bg-primary">Administrador</span>
+                                    }
+
+                                    else
+
+                                    {
+                                        <span class="badge bg-secondary">Utilizador</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@user.Id" class="btn btn-sm btn-info">Ver Perfil</a>
+
+                                        @if (!user.IsFirstUser)
+
+                                        {
+                                            <form asp-action="ToggleAdmin" method="post" class="d-inline me-1">
+                                                <input type="hidden" name="userId" value="@user.Id" />
+                                                <button type="submit" class="btn btn-sm @(user.IsAdmin ? "btn-warning" : "btn-info")">
+                                                    @(user.IsAdmin ? "Remover Admin" : "Tornar Admin")
+                                                </button>
+                                            </form>
+
+                                            <form asp-action="ToggleUserStatus" method="post" class="d-inline">
+                                                <input type="hidden" name="userId" value="@user.Id" />
+                                                <button type="submit" class="btn btn-sm @(!user.PermanentlyDisabled ? "btn-danger" : "btn-info")"
+                                                        onclick="return confirm('@(!user.PermanentlyDisabled ? "Desativar esta conta? O Utilizador não poderá mais fazer login." : "Ativar esta conta? O Utilizador poderá fazer login novamente.")')">
+                                                    @(!user.PermanentlyDisabled ? "Desativar Conta" : "Ativar Conta")
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
