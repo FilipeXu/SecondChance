@@ -1,0 +1,127 @@
+@model SecondChance.ViewModels.ReportUserViewModel
+
+@{
+    ViewData["Title"] = "Reportar Utilizador";
+}
+
+@section Styles {
+    <style>
+        .card-header.bg-danger {
+            background-color: #dc3545 !important;
+        }
+
+        .alert-warning i, 
+        .alert-danger i {
+            margin-right: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .btn-secondary {
+            background-color: black;
+            border-color: black;
+        }
+
+        .btn-secondary:hover {
+            background-color: black;
+            border-color: black;
+        }
+    </style>
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3>Reportar Utilizador: @Model.ReportedUserName</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Reportar um utilizador é uma ação séria. Por favor, forneça informações precisas e detalhadas sobre o motivo do seu relatório.
+                    </div>
+                    
+                    <form asp-action="ReportUser" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        
+                        <input type="hidden" asp-for="ReportedUserId" />
+                        <input type="hidden" asp-for="ReportedUserName" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="Reason" class="form-label">Motivo do Relatório</label>
+                            <select asp-for="Reason" class="form-select" required>
+                                <option value="">Selecione um motivo...</option>
+                                <option value="Conteúdo inadequado">Conteúdo inadequado</option>
+                                <option value="Comportamento ofensivo">Comportamento ofensivo</option>
+                                <option value="Produtos falsos ou enganosos">Produtos falsos ou enganosos</option>
+                                <option value="Assédio">Assédio</option>
+                                <option value="Spam">Spam</option>
+                                <option value="Outro">Outro (especifique nos detalhes)</option>
+                            </select>
+                            <span asp-validation-for="Reason" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Details" class="form-label">Detalhes Adicionais</label>
+                            <textarea asp-for="Details" class="form-control" rows="5" placeholder="Por favor, forneça detalhes específicos sobre o motivo do seu relatório..."></textarea>
+                            <span asp-validation-for="Details" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.ReportedUserId" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-danger" id="submitReport">Enviar Relatório</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            $("form").submit(function(e) {
+                console.log("Formulário sendo enviado");
+                
+                if ($("#Reason").val() === "") {
+                    e.preventDefault();
+                    alert("Por favor, selecione um motivo para o relatório.");
+                    return false;
+                }
+                
+                return true;
+            });
+            $("#submitReport").click(function() {
+                console.log("Botão de enviar clicado");
+            });
+        });
+    </script>
+}
