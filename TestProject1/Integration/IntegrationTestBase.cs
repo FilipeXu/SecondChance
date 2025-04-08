@@ -38,12 +38,17 @@ namespace TestProject1.Integration
             var serviceProvider = services.BuildServiceProvider();
             _context = serviceProvider.GetRequiredService<ApplicationDbContext>();
             _userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            
             var store = new Mock<IUserStore<User>>();
             _userManagerMock = new Mock<UserManager<User>>(
-                store.Object, null, null, null, null, null, null, null, null);
+                store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+
+            if (!roleManager.RoleExistsAsync("Admin").Result)
+                roleManager.CreateAsync(new IdentityRole("Admin")).Wait();
         }
 
-        protected async Task<User> CreateTestUser(string email = "test@example.com")
+        protected async Task<User> CreateTestUser(string email = "test@example.com", bool isAdmin = false)
         {
             var user = new User
             {
@@ -55,17 +60,19 @@ namespace TestProject1.Integration
                 Location = "Test Location",
                 Image = "/default-profile.jpg",
                 Description = "Test user description",
-                PhoneNumber = "123456789"
+                PhoneNumber = "123456789",
+                IsAdmin = isAdmin
             };
 
             await _userManager.CreateAsync(user, "Test123!");
+            
+            if (isAdmin)
+                await _userManager.AddToRoleAsync(user, "Admin");
+            
             return user;
         }
 
-        public void Dispose()
-        {
+        public void Dispose() => 
             _context.Database.EnsureDeleted();
-            _context.Dispose();
-        }
     }
 }
