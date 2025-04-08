@@ -1,0 +1,318 @@
+@model List<SecondChance.Models.ChatMessage>
+@{
+    ViewData["Title"] = "Chat de Suporte";
+    var currentUserId = ViewData["CurrentUserId"] as string;
+    var currentUserName = ViewData["CurrentUserName"] as string;
+}
+
+<div class="container-fluid mt-3">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    
+    <div class="support-chat-container">
+        <div class="chat-header">
+            <div class="d-flex align-items-center">
+                <a href="@Url.Action("Index", "Support")" class="back-button me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="chat-support-info d-flex align-items-center">
+                    <div class="support-avatar rounded-circle me-2">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4 class="mb-0">Equipa de Suporte</h4>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="messageContainer">
+            @if (Model.Any())
+            {
+                @foreach (var message in Model)
+                {
+                    var isSystemMessage = message.SenderId == currentUserId && message.ReceiverId == currentUserId 
+                        && (message.Content.StartsWith("Sua mensagem foi registrada") || message.Content.Contains("equipa de suporte responderá"));
+                    var isSentByUser = message.SenderId == currentUserId && !isSystemMessage;
+                    if (!isSystemMessage)
+                    {
+                        <div class="message @(isSentByUser ? "message-sent" : "message-received")">
+                            <div class="message-content">
+                                @if (!isSentByUser)
+                                {
+                                    <div class="message-sender">
+                                        Suporte
+                                    </div>
+                                }
+                                <p>@message.Content</p>
+                                <span class="message-time">@message.SentAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="empty-chat-message">
+                    <img src="https://img.icons8.com/color/96/000000/chat--v1.png" alt="Chat icon" class="mb-3" />
+                    <h4>Bem-vindo ao Chat de Suporte!</h4>
+                    <p>Como o podemos ajudar hoje?</p>
+                </div>
+            }
+        </div>
+        
+        <div class="chat-input">
+            <form asp-action="SendMessage" method="post" id="messageForm">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="content" id="messageInput" placeholder="Digite sua mensagem..." autocomplete="off">
+                    <button type="submit" class="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .support-chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 130px);
+        border-radius: 12px;
+        overflow: hidden;
+        max-width: 900px;
+        margin: 0 auto;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+    
+    .chat-header {
+        padding: 16px 20px;
+        background-color: #68B064;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 2;
+    }
+    
+    .back-button {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .back-button:hover {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .support-avatar {
+        width: 45px;
+        height: 45px;
+        background-color: white;
+        color: #68B064;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+        scrollbar-width: thin;
+    }
+    
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-messages::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+    }
+    
+    .message {
+        margin-bottom: 18px;
+        display: flex;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+
+    
+    .message-sent {
+        justify-content: flex-end;
+    }
+    
+    .message-received {
+        justify-content: flex-start;
+    }
+    
+    .message-content {
+        max-width: 70%;
+        padding: 12px 18px;
+        border-radius: 18px;
+        position: relative;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    
+    .message-sent .message-content {
+        background-color: #dcf8c6; 
+        color: #2c3e50;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-received .message-content {
+        background-color: white;
+        color: #2c3e50;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .message-content p {
+        margin-bottom: 5px;
+        word-wrap: break-word;
+        line-height: 1.5;
+    }
+    
+    .message-time {
+        display: block;
+        font-size: 11px;
+        color: #7f8c8d;
+        text-align: right;
+        margin-top: 4px;
+    }
+    
+    .message-sender {
+        font-size: 13px;
+        font-weight: 600;
+        color: #68B064;
+        margin-bottom: 5px;
+    }
+    
+    .empty-chat-message {
+        text-align: center;
+        color: #7f8c8d;
+        padding: 40px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+    
+    .empty-chat-message h4 {
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+    
+    .chat-input {
+        padding: 16px;
+        background-color: white;
+        border-top: 1px solid #eaeaea;
+    }
+    
+    .chat-input .form-control {
+        border-radius: 24px;
+        padding: 12px 20px;
+        border: 1px solid #e0e0e0;
+        box-shadow: none;
+        transition: all 0.3s;
+        font-size: 15px;
+    }
+    
+    .chat-input .form-control:focus {
+        border-color: #68B064;
+        box-shadow: 0 0 0 0.2rem rgba(104, 176, 100, 0.15);
+    }
+    
+    .send-button {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background-color: #68B064;
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .send-button:hover {
+        background-color: #5a9c56;
+        transform: scale(1.05);
+    }
+    
+    .input-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    @@media (max-width: 768px) {
+        .support-chat-container {
+            height: calc(100vh - 110px);
+            border-radius: 0;
+            margin: 0 -12px;
+        }
+        
+        .message-content {
+            max-width: 85%;
+        }
+        
+        .chat-messages {
+            padding: 15px;
+        }
+        
+        .chat-input {
+            padding: 12px;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageContainer = document.getElementById('messageContainer');
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+        
+        document.getElementById('messageInput').focus();
+        
+        const messageForm = document.getElementById('messageForm');
+        const messageInput = document.getElementById('messageInput');
+        
+        messageForm.addEventListener('submit', function(e) {
+            if (messageInput.value.trim() === '') {
+                e.preventDefault();
+                messageInput.focus();
+            } else {
+                const tempMessage = document.createElement('div');
+                tempMessage.className = 'message message-sent';
+                tempMessage.innerHTML = `
+                    <div class="message-content">
+                        <p>${messageInput.value}</p>
+                        <span class="message-time">Enviando...</span>
+                    </div>
+                `;
+                
+                messageContainer.appendChild(tempMessage);
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }
+        });
+    });
+</script> 

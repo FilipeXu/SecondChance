@@ -25,7 +25,7 @@ namespace TestProject1.Integration
             {
                 Name = "Test Product",
                 Description = "Test Description",
-                Category = "Test Category",
+                Category = Category.Roupa,
                 Location = "Test Location",
                 PublishDate = DateTime.UtcNow,
                 Image = "/path/to/image.jpg",

@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<SecondChance.Models.Product>
 @using System.Security.Claims
+@using SecondChance.Models
 
 @{
     ViewData["Title"] = "Produtos";
@@ -43,11 +44,12 @@
         display: flex;
         gap: 15px;
         align-items: center;
+        flex-wrap: wrap;
     }
 
     .add-product-btn {
         background-color: #68B064;
-        color: white;
+        color: white !important;
         border: none;
         padding: 12px 24px;
         border-radius: 5px;
@@ -55,12 +57,17 @@
         font-weight: 500;
         transition: all 0.2s ease;
         white-space: nowrap;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 160px; 
     }
 
         .add-product-btn:hover {
             background-color: #5a9856;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            color: white !important; 
         }
 
     .search-box {
@@ -285,6 +292,81 @@
         .contact-user-btn:hover {
             background-color: #5a9856;
         }
+
+    .pagination-container {
+        margin-top: 30px;
+    }
+
+    .pagination .page-link {
+        color: #333;
+        border-color: #dee2e6;
+        margin: 0 3px;
+        border-radius: 4px;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #68B064;
+        border-color: #68B064;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #e9f5e9;
+        color: #68B064;
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .search-container {
+            height: auto;
+            min-height: 200px;
+            padding: 30px 20px;
+        }
+
+        .search-content {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .add-product-btn {
+            width: 100%;
+            padding: 10px 16px;
+            margin-bottom: 10px;
+        }
+
+        .search-box {
+            width: 100%;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .add-product-btn .btn-text {
+            display: inline-block !important; 
+            margin-left: 8px;
+        }
+
+        .add-product-btn {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            justify-content: center;
+        }
+
+            .add-product-btn i {
+                margin-right: 0;
+            }
+
+        .search-container {
+            padding: 20px 15px;
+        }
+    }
+
+    @@media (max-width: 400px) {
+        .add-product-btn {
+            min-width: auto;
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+    }
 </style>
 
 @if (TempData["Message"] != null)
@@ -301,13 +383,13 @@
         @if (User.Identity?.IsAuthenticated == true)
         {
             <a asp-action="Create" class="add-product-btn">
-                <i class="fas fa-plus-circle me-2"></i>Adicionar Produto
+                <i class="fas fa-plus-circle me-2"></i><span class="btn-text">Adicionar Produto</span>
             </a>
         }
         else
         {
             <a asp-area="Identity" asp-page="/Account/Login" class="add-product-btn">
-                <i class="fas fa-sign-in-alt me-2"></i>Login para Adicionar
+                <i class="fas fa-sign-in-alt me-2"></i><span class="btn-text">Login para Adicionar</span>
             </a>
         }
         <div class="search-box">
@@ -334,8 +416,7 @@
                         <select name="sortOrder" class="form-select" onchange="this.form.submit()">
                             <option value="date_desc" selected="@(ViewBag.CurrentSortOrder == "date_desc" || ViewBag.CurrentSortOrder == null)">Mais recentes</option>
                             <option value="date_asc" selected="@(ViewBag.CurrentSortOrder == "date_asc")">Mais antigos</option>
-                            <option value="name_asc" selected="@(ViewBag.CurrentSortOrder == "name_asc")">Nome (A-Z)</option>
-                            <option value="name_desc" selected="@(ViewBag.CurrentSortOrder == "name_desc")">Nome (Z-A)</option>
+                            <option value="relevance" selected="@(ViewBag.CurrentSortOrder == "relevance")">Relevância</option>
                         </select>
                     </div>
 
@@ -343,15 +424,9 @@
                         <div class="filter-header">Categoria</div>
                         <select name="category" class="form-select" onchange="this.form.submit()">
                             <option value="Todas">Todas as categorias</option>
-                            @if (ViewBag.Categories != null)
+                            @foreach (Category category in Enum.GetValues(typeof(Category)))
                             {
-                                foreach (var category in ViewBag.Categories)
-                                {
-                                    if (!string.IsNullOrEmpty(category))
-                                    {
-                                        <option value="@category" selected="@(category == ViewBag.CurrentCategory)">@category</option>
-                                    }
-                                }
+                                <option value="@category" selected="@(category.ToString() == ViewBag.CurrentCategory)">@category</option>
                             }
                         </select>
                     </div>
@@ -390,8 +465,8 @@
             @if (Model.Any())
             {
                 @if (!string.IsNullOrEmpty(ViewBag.CurrentSearchTerm) ||
-               !string.IsNullOrEmpty(ViewBag.CurrentCategory) && ViewBag.CurrentCategory != "Todas" ||
-               !string.IsNullOrEmpty(ViewBag.CurrentLocation) && ViewBag.CurrentLocation != "Todas")
+               (!string.IsNullOrEmpty(ViewBag.CurrentCategory?.ToString()) && ViewBag.CurrentCategory != "Todas") ||
+               (!string.IsNullOrEmpty(ViewBag.CurrentLocation) && ViewBag.CurrentLocation != "Todas"))
                 {
                     <div class="filter-tags">
                         @if (!string.IsNullOrEmpty(ViewBag.CurrentSearchTerm))
@@ -401,7 +476,7 @@
                                 @ViewBag.CurrentSearchTerm
                             </div>
                         }
-                        @if (!string.IsNullOrEmpty(ViewBag.CurrentCategory) && ViewBag.CurrentCategory != "Todas")
+                        @if (!string.IsNullOrEmpty(ViewBag.CurrentCategory?.ToString()) && ViewBag.CurrentCategory != "Todas")
                         {
                             <div class="filter-tag">
                                 <i class="fas fa-tag"></i>
@@ -466,6 +541,75 @@
                         </div>
                     }
                 </div>
+
+                <div class="pagination-container d-flex justify-content-center">
+                    <nav aria-label="Navegação de páginas">
+                        <ul class="pagination">
+                            <li class="page-item @(ViewBag.HasPreviousPage ? "" : "disabled")">
+                                <a class="page-link" href="@(ViewBag.HasPreviousPage ? Url.Action("Index", new {
+                                    page = ViewBag.CurrentPage - 1,
+                                    searchTerm = ViewBag.CurrentSearchTerm,
+                                    category = ViewBag.CurrentCategory,
+                                    location = ViewBag.CurrentLocation,
+                                    sortOrder = ViewBag.CurrentSortOrder,
+                                    userId = ViewBag.CurrentUserId
+                                }) : "#")" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            @if (ViewBag.CurrentPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new {
+                                        page = ViewBag.CurrentPage - 1,
+                                        searchTerm = ViewBag.CurrentSearchTerm,
+                                        category = ViewBag.CurrentCategory,
+                                        location = ViewBag.CurrentLocation,
+                                        sortOrder = ViewBag.CurrentSortOrder,
+                                        userId = ViewBag.CurrentUserId
+                                    })">@(ViewBag.CurrentPage - 1)</a>
+                                </li>
+                            }
+
+                            <li class="page-item active">
+                                <a class="page-link" href="#">@ViewBag.CurrentPage</a>
+                            </li>
+                            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new {
+                                        page = ViewBag.CurrentPage + 1,
+                                        searchTerm = ViewBag.CurrentSearchTerm,
+                                        category = ViewBag.CurrentCategory,
+                                        location = ViewBag.CurrentLocation,
+                                        sortOrder = ViewBag.CurrentSortOrder,
+                                        userId = ViewBag.CurrentUserId
+                                    })">@(ViewBag.CurrentPage + 1)</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(ViewBag.HasNextPage ? "" : "disabled")">
+                                <a class="page-link" href="@(ViewBag.HasNextPage ? Url.Action("Index", new {
+                                    page = ViewBag.CurrentPage + 1,
+                                    searchTerm = ViewBag.CurrentSearchTerm,
+                                    category = ViewBag.CurrentCategory,
+                                    location = ViewBag.CurrentLocation,
+                                    sortOrder = ViewBag.CurrentSortOrder,
+                                    userId = ViewBag.CurrentUserId
+                                }) : "#")" aria-label="Próximo">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                @if (ViewBag.TotalPages > 0)
+                {
+                    <div class="text-center mt-2 text-muted">
+                        <small>Mostrando página @ViewBag.CurrentPage de @ViewBag.TotalPages (@ViewBag.TotalProducts produtos)</small>
+                    </div>
+                }
             }
             else
             {
@@ -480,7 +624,7 @@
 
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             function buildSearchUrl(searchTerm) {
                 const currentUrl = new URL(window.location.href);
                 const params = new URLSearchParams(currentUrl.search);
@@ -496,27 +640,28 @@
                 if (location && location !== 'Todas') params.set('location', location);
                 if (sortOrder) params.set('sortOrder', sortOrder);
                 if (userId) params.set('userId', userId);
+                params.set('page', 1);
 
                 return '@Url.Action("Index")?' + params.toString();
             }
 
-            $('#searchInput').keypress(function(e) {
+            $('#searchInput').keypress(function (e) {
                 if (e.which == 13) {
                     window.location.href = buildSearchUrl($(this).val());
                 }
             });
 
-            $('#searchButton').click(function() {
+            $('#searchButton').click(function () {
                 window.location.href = buildSearchUrl($('#searchInput').val());
             });
 
-            $('.report-product-btn').click(function(e) {
+            $('.report-product-btn').click(function (e) {
                 e.preventDefault();
                 $('#productId').val($(this).data('id'));
                 new bootstrap.Modal(document.getElementById('reportProductModal')).show();
             });
 
-            $('.contact-user-btn').click(function(e) {
+            $('.contact-user-btn').click(function (e) {
                 e.preventDefault();
                 const productId = $(this).data('id');
                 const ownerId = $(this).data('owner');

@@ -35,7 +35,7 @@ namespace TestProject1
             {
                 Name = name,
                 Description = "Test",
-                Category = "Test Category",
+                Category = Category.Roupa,
                 Image = "test-image.jpg",
                 Location = "Test Location",
                 OwnerId = "test-owner-id"

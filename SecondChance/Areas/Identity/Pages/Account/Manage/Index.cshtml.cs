@@ -25,6 +25,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly IProductRepository _productRepository;
+        private readonly ApplicationDbContext _context;
 
         public IndexModel(
             UserManager<User> userManager,
@@ -34,6 +35,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
             _productRepository = productRepository ?? new ProductRepository(context);
         }
 
@@ -43,6 +45,12 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
         public string CurrentSort { get; set; }
         public List<Product> UserProducts { get; set; }
         public bool HasPassword { get; set; }
+
+        public double AverageRating { get; set; }
+        public int TotalRatings { get; set; }
+        public int? CurrentUserRating { get; set; }
+        public List<Comment> RecentComments { get; set; }
+        public bool CanRate { get; set; }
 
         [TempData]
         public string StatusMessage { get; set; }
@@ -83,6 +91,8 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             public string ConfirmPassword { get; set; }
         }
 
+
+
         private async Task LoadAsync(User user)
         {
             HasPassword = await _userManager.HasPasswordAsync(user);
@@ -96,21 +106,60 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             };
 
             UserProfile = user;
-            IsCurrentUser = User.Identity.IsAuthenticated && 
+            IsCurrentUser = User.Identity.IsAuthenticated &&
                 user.Id == _userManager.GetUserId(User);
+
+            RecentComments = await _context.Comments
+                .Include(c => c.Author)
+                .Where(c => c.ProfileId == user.Id)
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(3)
+                .ToListAsync();
+
+            await LoadRatingsAsync(user.Id);
+        }
+
+        private async Task LoadRatingsAsync(string userId)
+        {
+
+            AverageRating = await _context.UserRatings
+                .Where(r => r.RatedUserId == userId)
+                .AverageAsync(r => (double?)r.Rating) ?? 0;
+
+            TotalRatings = await _context.UserRatings
+                .Where(r => r.RatedUserId == userId)
+                .CountAsync();
+
+            CurrentUserRating = null;
+            CanRate = false;
+
+            if (User.Identity.IsAuthenticated)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser != null && currentUser.Id != userId)
+                {
+                    CanRate = true;
+                    var rating = await _context.UserRatings
+                        .FirstOrDefaultAsync(r => r.RaterUserId == currentUser.Id && r.RatedUserId == userId);
+                    if (rating != null)
+                    {
+                        CurrentUserRating = rating.Rating;
+                    }
+                }
+            }
         }
 
         public async Task<IActionResult> OnGetAsync(string userId = null, string sort = null)
         {
             User user;
             CurrentSort = sort;
-            
+
             if (string.IsNullOrEmpty(userId))
             {
                 user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
-                    return NotFound($"Não foi possível carregar o usuário.");
+                    return NotFound($"Não foi possível carregar o utilizador.");
                 }
                 IsCurrentUser = true;
             }
@@ -119,15 +168,17 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
                 user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
                 {
-                    return NotFound($"Não foi possível encontrar o usuário com ID '{userId}'.");
+                    return NotFound($"Não foi possível encontrar o utilizador com ID '{userId}'.");
                 }
-                IsCurrentUser = User.Identity.IsAuthenticated && 
+                IsCurrentUser = User.Identity.IsAuthenticated &&
                     userId == _userManager.GetUserId(User);
             }
 
             await LoadAsync(user);
-            UserProducts = await _productRepository.GetUserProductsAsync(user.Id, sort);
-            
+            var allUserProducts = await _productRepository.GetUserProductsAsync(user.Id, sort);
+
+
+            UserProducts = allUserProducts.Where(p => !p.IsDonated).ToList();
             return Page();
         }
 
@@ -136,7 +187,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Não foi possível carregar o usuário.");
+                return NotFound($"Não foi possível carregar o utilizador.");
             }
 
             if (!ModelState.IsValid)
@@ -151,7 +202,7 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
                 var uniqueFileName = Guid.NewGuid().ToString() + "_" + fileName;
 
                 var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images");
-                Directory.CreateDirectory(uploads); 
+                Directory.CreateDirectory(uploads);
                 var filePath = Path.Combine(uploads, uniqueFileName);
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
@@ -190,11 +241,61 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
 
             await _signInManager.RefreshSignInAsync(user);
             StatusMessage = "Seu perfil foi atualizado com sucesso";
-            
+
             await LoadAsync(user);
             UserProducts = await _productRepository.GetUserProductsAsync(user.Id, CurrentSort);
-            
+
             return Page();
+        }
+        public async Task<IActionResult> OnPostSubmitRatingAsync(string ratedUserId, int rating)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToPage("/Account/Login");
+            }
+
+            if (rating < 1 || rating > 5)
+            {
+                StatusMessage = "Avaliação deve ser entre 1 e 5 estrelas.";
+                return RedirectToPage(new { userId = ratedUserId });
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return NotFound("Não foi possível carregar o utilizador.");
+            }
+
+            if (currentUser.Id == ratedUserId)
+            {
+                StatusMessage = "Não podes avaliar seu próprio perfil.";
+                return RedirectToPage();
+            }
+
+            var existingRating = await _context.UserRatings
+                .FirstOrDefaultAsync(r => r.RaterUserId == currentUser.Id && r.RatedUserId == ratedUserId);
+
+            if (existingRating != null)
+            {
+                existingRating.Rating = rating;
+
+            }
+            else
+            {
+
+                _context.UserRatings.Add(new UserRating
+                {
+                    RaterUserId = currentUser.Id,
+                    RatedUserId = ratedUserId,
+                    Rating = rating,
+                    CreatedAt = DateTime.Now
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            StatusMessage = "Avaliação enviada com sucesso!";
+            return RedirectToPage(new { userId = ratedUserId });
         }
 
         public async Task<IActionResult> OnPostDeactivateAccountAsync()
@@ -202,10 +303,10 @@ namespace SecondChance.Areas.Identity.Pages.Account.Manage
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
-                return NotFound($"Não foi possível carregar o usuário.");
+                return NotFound($"Não foi possível carregar o utilizador.");
             }
 
-            user.IsActive = false; 
+            user.IsActive = false;
             var result = await _userManager.UpdateAsync(user);
 
             if (!result.Succeeded)

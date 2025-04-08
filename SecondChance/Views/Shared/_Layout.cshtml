@@ -1,4 +1,12 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    bool isAdmin = currentUser != null && currentUser.IsAdmin;
+}
+
+<!DOCTYPE html>
 <html lang="pt-pt">
 <head>
     <meta charset="utf-8" />
@@ -7,8 +15,7 @@
 
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="~/SecondChance.styles.css" asp-append-version="true" />
@@ -21,31 +28,34 @@
         <nav class="navbar navbar-expand-lg" style="background-color: #68B064;">
             <div class="container-fluid">
                 <a class="navbar-brand text-white" asp-area="" asp-controller="Products" asp-action="Index">
-                    SecondChance
+                    Second Chance
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#navbarSupportedContent"
-                        aria-controls="navbarSupportedContent" aria-expanded="false"
-                        aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <i class="fas fa-bars" style="color: white;"></i>
                 </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-white"
-                               asp-area="" asp-controller="Products" asp-action="Index">Produtos</a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                <i class="fas fa-info-circle"></i> Sobre nós
+                            </a>
                         </li>
+                        @if (!isAdmin)
+                        {
+                            <li class="nav-item" id="supportLink">
+                                <a class="nav-link text-white" asp-area="" asp-controller="Support" asp-action="Index">
+                                    <i class="fas fa-headset"></i> Suporte
+                                </a>
+                            </li>
+                        }
                         <li class="nav-item">
-                            <a class="nav-link text-white"
-                               asp-area="" asp-controller="Home" asp-action="Privacy">Sobre nós</a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="Statistics" asp-action="Index">
+                                <i class="fas fa-chart-column"></i> Estatística
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white"
-                               asp-area="" asp-controller="Support" asp-action="Index">Suporte</a>
-                        </li>
+                        <partial name="_LoginPartial" />
                     </ul>
-                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
@@ -59,10 +69,17 @@
     </main>
 
 
-    <footer class="mt-auto border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - SecondChance -
-            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="mt-auto border-top footer text-muted" style="background-color: #68B064">
+        <div class="container-fluid">
+            <div class="row align-items-center small">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 text-white">&copy; 2025 SecondChance. Todos os direitos reservados.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a class="text-white" asp-area="" asp-controller="Home" asp-action="Privacy">Sobre nós</a>
+                    <a href="#" class="text-white text-decoration-none">Política de Privacidade</a>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -70,6 +87,8 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>
+

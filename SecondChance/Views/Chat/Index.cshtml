@@ -1,0 +1,184 @@
+@model List<SecondChance.ViewModels.ConversationViewModel>
+@{
+    ViewData["Title"] = "As Minhas Conversas";
+}
+
+<div class="container mt-4">
+    <div class="chat-index-header mb-4">
+        <h3 class="mb-0">
+            <i class="fas fa-comments me-2"></i>
+           As Minhas Conversas
+        </h3>
+    </div>
+    
+    <div class="conversations-list">
+        @if (Model.Any())
+        {
+            <div class="card conversations-card">
+                <ul class="list-group list-group-flush">
+                    @foreach (var conversation in Model)
+                    {
+                        <li class="list-group-item conversation-item">
+                            <a href="@Url.Action("Conversation", new { userId = conversation.OtherUserId })" class="conversation-link">
+                                <div class="d-flex align-items-center">
+                                    <div class="conversation-avatar">
+                                        @if (!string.IsNullOrEmpty(conversation.OtherUserImage))
+                                        {
+                                            <img src="@conversation.OtherUserImage" alt="@conversation.OtherUserName" class="rounded-circle" width="50" height="50">
+                                        }
+                                        else
+                                        {
+                                            <div class="user-avatar rounded-circle">
+                                                @conversation.OtherUserName.Substring(0, 1)
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="conversation-details flex-grow-1 ms-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="user-name mb-0">@conversation.OtherUserName</h5>
+                                            <small class="conversation-time">@conversation.LastMessageTime.ToString("dd/MM HH:mm")</small>
+                                        </div>
+                                        <p class="conversation-preview mb-0 text-truncate @(conversation.UnreadCount > 0 ? "fw-bold" : "")" style="max-width: 300px;">
+                                            @conversation.LastMessageContent
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+        else
+        {
+            <div class="empty-conversations">
+                <div class="text-center">
+                    <i class="fas fa-comments empty-icon"></i>
+                    <h4>Nenhuma conversa</h4>
+                    <p>Ainda não tem nenhuma conversa. Explore produtos na plataforma e inicie uma conversa com os doadores!</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .chat-index-header h3 {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .chat-index-header i {
+        color: #68B064;
+    }
+    
+    .conversations-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border: none;
+    }
+    
+    .conversation-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        padding: 10px 5px;
+    }
+    
+    .conversation-item {
+        border-left: none;
+        border-right: none;
+        border-color: #eaeaea;
+        transition: all 0.2s;
+    }
+    
+    .conversation-item:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+    }
+    
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        background-color: #68B064;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-name {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .conversation-time {
+        font-size: 13px;
+        color: #7f8c8d;
+    }
+    
+    .conversation-preview {
+        color: #7f8c8d;
+        font-size: 14px;
+    }
+    
+    .conversation-preview.fw-bold {
+        color: #2c3e50;
+    }
+    
+    .unread-badge {
+        min-width: 24px;
+        height: 24px;
+        background-color: #68B064;
+        color: white;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 0 8px;
+    }
+    
+    .empty-conversations {
+        padding: 60px 20px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    .empty-icon {
+        font-size: 60px;
+        color: #68B064;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .empty-conversations h4 {
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    
+    .empty-conversations p {
+        color: #7f8c8d;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    @@media (max-width: 768px) {
+        .conversations-card {
+            border-radius: 8px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+    }
+</style>
