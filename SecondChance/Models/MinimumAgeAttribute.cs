@@ -18,7 +18,6 @@ namespace SecondChance.Models
                 var today = DateTime.Today;
                 var age = today.Year - dateOfBirth.Year;
                 
-                // Subtract a year if the person hasn't had their birthday yet this year
                 if (dateOfBirth.Date > today.AddYears(-age))
                 {
                     age--;

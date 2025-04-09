@@ -107,7 +107,6 @@ namespace SecondChance.Controllers
                 return Challenge();
             }
 
-            // Only the author of the comment or the owner of the profile can delete
             if (comment.AuthorId != currentUser.Id && comment.ProfileId != currentUser.Id)
             {
                 return Forbid();
@@ -134,7 +133,6 @@ namespace SecondChance.Controllers
                 return Challenge();
             }
 
-            // Only the author of the comment or the owner of the profile can delete
             if (comment.AuthorId != currentUser.Id && comment.ProfileId != currentUser.Id)
             {
                 return Forbid();
