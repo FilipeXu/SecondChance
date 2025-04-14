@@ -9,7 +9,7 @@ using Xunit;
 
 namespace TestProject1.Integration
 {
-    public class ProductWorkflowTests : IntegrationTestBase
+    public class ProductControllerIntegrationTests : IntegrationTestBase
     {
         private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new();
 
@@ -25,7 +25,7 @@ namespace TestProject1.Integration
             {
                 Name = "Test Product",
                 Description = "Test Description",
-                Category = Category.Roupa,
+                Category = Category.Outros,
                 Location = "Test Location",
                 PublishDate = DateTime.UtcNow,
                 Image = "/path/to/image.jpg",

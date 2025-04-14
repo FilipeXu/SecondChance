@@ -12,7 +12,7 @@ using SecondChance.Data;
 using SecondChance.Models;
 using System.Net;
 
-namespace TestProject1
+namespace TestProject1.Integration
 {
     public class GoogleFacebookApiTests
     {
