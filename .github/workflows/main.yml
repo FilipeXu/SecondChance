@@ -13,8 +13,8 @@ env:
   SOLUTION_PATH: "SecondChance.sln"
   API_PROJECT_PATH: "./SecondChance/SecondChance.csproj"
   PUBLISH_DIR: "publish"
-  UNIT_TEST_PROJECT: "TestProject1.Unit/TestProject1.Unit.csproj"
-  INTEGRATION_TEST_PROJECT: "TestProject1.Integration/TestProject1.Integration.csproj"
+  UNIT_TEST_PROJECT: "FullyQualifiedName~TestProject1.Unit"
+  INTEGRATION_TEST_PROJECT: "FullyQualifiedName~TestProject1.Integration"
 
 jobs:
   build-and-test:
@@ -36,10 +36,10 @@ jobs:
         run: dotnet build --configuration Release --no-restore
       
       - name: Run Unit Tests
-        run: dotnet test ${{ env.UNIT_TEST_PROJECT }} --configuration Release --no-build --filter "Category=Unit"
+        run: dotnet test --filter ${{ env.UNIT_TEST_PROJECT }} --configuration Release --no-build --filter "Category=Unit"
         
       - name: Run Integration Tests
-        run: dotnet test ${{ env.INTEGRATION_TEST_PROJECT }} --configuration Release --no-build --filter "Category=Integration"
+        run: dotnet test --filter ${{ env.INTEGRATION_TEST_PROJECT }} --configuration Release --no-build --filter "Category=Integration"
       
       - name: Publish
         run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --output ${{ env.PUBLISH_DIR }}
