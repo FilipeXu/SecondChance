@@ -13,43 +13,69 @@ using SecondChance.Models;
 
 namespace SecondChance.Areas.Identity.Pages.Account
 {
+    /// <summary>
+    /// Modelo da página de registo de utilizadores.
+    /// Gere o processo de criação de novas contas de utilizadores na aplicação.
+    /// </summary>
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly IUserStore<User> _userStore;
         private readonly IUserEmailStore<User> _emailStore;
-        private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
 
+        /// <summary>
+        /// Construtor da classe RegisterModel.
+        /// </summary>
+        /// <param name="userManager">Gestor de utilizadores que fornece APIs para gerir utilizadores</param>
+        /// <param name="userStore">Armazenamento responsável pelos dados dos utilizadores</param>
+        /// <param name="signInManager">Gestor de autenticação para operações de início de sessão</param>
+        /// <param name="emailSender">Serviço para envio de emails</param>
         public RegisterModel(
             UserManager<User> userManager,
             IUserStore<User> userStore,
             SignInManager<User> signInManager,
-            ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
-            _logger = logger;
             _emailSender = emailSender;
         }
 
+        /// <summary>
+        /// Modelo com os dados de entrada para o registo
+        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
+        /// <summary>
+        /// URL de retorno após o registo
+        /// </summary>
         public string ReturnUrl { get; set; }
 
+        /// <summary>
+        /// Lista de esquemas de autenticação externa disponíveis
+        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
+        /// <summary>
+        /// Classe que representa os dados do formulário de registo
+        /// </summary>
         public class InputModel
         {
+            /// <summary>
+            /// Nome completo do utilizador
+            /// </summary>
             [Required]
             [Display(Name = "Nome Completo")]
             public string FullName { get; set; }
 
+            /// <summary>
+            /// Data de nascimento do utilizador
+            /// </summary>
             [Required]
             [DataType(DataType.Date)]
             [Display(Name = "Data de Nascimento")]
@@ -57,29 +83,49 @@ namespace SecondChance.Areas.Identity.Pages.Account
             [MaximumAge(125)]
             public DateTime BirthDate { get; set; }
 
+            /// <summary>
+            /// Endereço de email do utilizador
+            /// </summary>
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
+            /// <summary>
+            /// Palavra-passe do utilizador
+            /// </summary>
             [Required]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             [PasswordStrengthAttribute]
             public string Password { get; set; }
 
+            /// <summary>
+            /// Confirmação da palavra-passe
+            /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
         }
 
+        /// <summary>
+        /// Manipula o pedido GET para a página de registo.
+        /// Carrega os métodos de autenticação externa disponíveis.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após o registo</param>
         public async Task OnGetAsync(string returnUrl = null)
         {
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
+        /// <summary>
+        /// Manipula o pedido POST para o registo de utilizadores.
+        /// Cria um novo utilizador se os dados forem válidos.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após o registo bem-sucedido</param>
+        /// <returns>Página de confirmação, página inicial ou página de registo com erros de validação</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
@@ -91,12 +137,10 @@ namespace SecondChance.Areas.Identity.Pages.Account
                 {
                     ModelState.AddModelError("Input.Email", "Este email já existe.");
                     return Page();
-                }
-
-                var user = CreateUser();
+                }                var user = CreateUser();
                 user.Location = "Por definir";
                 user.JoinDate = DateTime.Now;
-                user.Image = "Por definir";
+                user.Image = "/Images/Default.jpg";
                 user.PhoneNumber = "Por definir";
                 user.Description = "Escreva algo sobre si e o seu numero de telemóvel...";
                 user.IsActive = true;
@@ -148,6 +192,11 @@ namespace SecondChance.Areas.Identity.Pages.Account
             return Page();
         }
 
+        /// <summary>
+        /// Cria uma nova instância da classe User.
+        /// </summary>
+        /// <returns>Nova instância da classe User</returns>
+        /// <exception cref="InvalidOperationException">Ocorre se não for possível criar uma instância da classe User</exception>
         private User CreateUser()
         {
             try
@@ -162,6 +211,11 @@ namespace SecondChance.Areas.Identity.Pages.Account
             }
         }
 
+        /// <summary>
+        /// Obtém o armazenamento de emails para utilizadores.
+        /// </summary>
+        /// <returns>Interface para gerir emails de utilizadores</returns>
+        /// <exception cref="NotSupportedException">Ocorre se o gestor de utilizadores não suportar email</exception>
         private IUserEmailStore<User> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)

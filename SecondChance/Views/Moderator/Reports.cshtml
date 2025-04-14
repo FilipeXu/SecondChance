@@ -60,7 +60,7 @@
 </style>
 
 <div class="container mt-4">
-    <h1 class="display-4 mb-4">Relatórios de Utilizadores</h1>
+    <h1 class="display-4 mb-4">Reports de Utilizadores</h1>
     
     @if (TempData["SuccessMessage"] != null)
     {
@@ -81,7 +81,7 @@
     <div class="card">
         <div class="card-header card-header-custom">
             <div class="d-flex justify-content-between align-items-center">
-                <h3>Lista de Relatórios</h3>
+                <h3>Lista de Reports</h3>
                 <a asp-action="Index" class="btn btn-outline-custom">Voltar ao Painel</a>
             </div>
         </div>
@@ -98,7 +98,7 @@
                                 <th>Reportado Por</th>
                                 <th>Motivo</th>
                                 <th>Data</th>
-                                <th>Status do Relatório</th>
+                                <th>Status do Report</th>
                                 <th>Resolvido Por</th>
                                 <th>Ações</th>
                             </tr>
@@ -175,7 +175,7 @@
             else
             {
                 <div class="alert alert-info">
-                    Não existe relatórios de Utilizadores
+                    Não existe Reports de Utilizadores
                 </div>
             }
         </div>

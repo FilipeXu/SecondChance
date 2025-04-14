@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecondChance.Data;
+using SecondChance.Hubs;
 using SecondChance.Models;
 using SecondChance.ViewModels;
 using System;
@@ -17,21 +19,32 @@ namespace SecondChance.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public ChatController(ApplicationDbContext context, UserManager<User> userManager)
+        public ChatController(ApplicationDbContext context, UserManager<User> userManager, IHubContext<ChatHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
-        }
-
+            _hubContext = hubContext;
+        }        
+        /// <summary>
+        /// Lista todas as conversas do utilizador atual.
+        /// </summary>
+        /// <returns>View com a lista de conversas do utilizador atual</returns>
+        /// <remarks>Este método carrega todas as conversas privadas do utilizador atual</remarks>
         public async Task<IActionResult> Index()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Challenge();
 
             return View(await GetUserConversations(currentUser.Id));
-        }
-
+        }        
+        /// <summary>
+        /// Exibe uma conversa específica com outro utilizador.
+        /// </summary>
+        /// <param name="userId">ID do outro utilizador na conversa</param>
+        /// <returns>View com a conversa entre o utilizador atual e o utilizador especificado</returns>
+        /// <remarks>Este método marca as mensagens não lidas como lidas quando a conversa é aberta</remarks>
         public async Task<IActionResult> Conversation(string userId)
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -52,16 +65,21 @@ namespace SecondChance.Controllers
             {
                 message.IsRead = true;
             }
-            if (unreadMessages.Any()) await _context.SaveChangesAsync();
-
+            if (unreadMessages.Any()) await _context.SaveChangesAsync();            
             ViewData["CurrentUserId"] = currentUser.Id;
             ViewData["OtherUser"] = otherUser;
             ViewData["CurrentUserName"] = currentUser.FullName;
             ViewData["OtherUserName"] = otherUser.FullName;
 
             return View(messages);
-        }
-
+        }        
+        /// <summary>
+        /// Envia uma nova mensagem para um utilizador específico.
+        /// </summary>
+        /// <param name="receiverId">ID do utilizador que receberá a mensagem</param>
+        /// <param name="content">Conteúdo da mensagem a ser enviada</param>
+        /// <returns>Redireciona para a página de conversa com o utilizador recetor</returns>
+        /// <remarks>Este método utiliza SignalR para notificar o destinatário em tempo real</remarks>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendMessage(string receiverId, string content)
@@ -71,27 +89,39 @@ namespace SecondChance.Controllers
 
             if (string.IsNullOrWhiteSpace(content))
             {
-                TempData["Error"] = "A mensagem não pode estar vazia";
+                TempData["Error"] = "A mensagem não pode estar vazia.";
                 return RedirectToAction(nameof(Conversation), new { userId = receiverId });
             }
 
             var receiver = await _userManager.FindByIdAsync(receiverId);
             if (receiver == null) return NotFound();
 
-            _context.Add(new ChatMessage
+            string conversationId = GetConversationId(currentUser.Id, receiverId);
+
+            var message = new ChatMessage
             {
                 Content = content,
                 SentAt = DateTime.Now,
                 IsRead = false,
                 SenderId = currentUser.Id,
                 ReceiverId = receiverId,
-                ConversationId = GetConversationId(currentUser.Id, receiverId)
-            });
-            await _context.SaveChangesAsync();
+                ConversationId = conversationId
+            };
 
-            return RedirectToAction(nameof(Conversation), new { userId = receiverId });
+            _context.Add(message);
+            await _context.SaveChangesAsync();
+            await _hubContext.Clients.Group(conversationId).SendAsync("ReceiveMessage", 
+                currentUser.FullName, 
+                currentUser.Id, 
+                content, 
+                message.SentAt);            
+                return RedirectToAction(nameof(Conversation), new { userId = receiverId });
         }
-        
+        /// <summary>
+        /// Inicia uma nova conversa com um utilizador específico.
+        /// </summary>
+        /// <param name="userId">ID do utilizador com quem se deseja iniciar a conversa</param>
+        /// <returns>Redireciona para a página de conversa com o utilizador especificado</returns>
         public async Task<IActionResult> StartConversation(string userId)
         {
             if (string.IsNullOrEmpty(userId)) return NotFound();
@@ -100,10 +130,16 @@ namespace SecondChance.Controllers
             if (currentUser == null) return Challenge();
             
             if (await _userManager.FindByIdAsync(userId) == null) return NotFound();
-            
-            return RedirectToAction(nameof(Conversation), new { userId });
-        }
-
+              return RedirectToAction(nameof(Conversation), new { userId });
+        }        
+        /// <summary>
+        /// Devolve a contagem de mensagens não lidas para o utilizador atual.
+        /// </summary>
+        /// <returns>Um objeto JSON contendo a contagem de mensagens não lidas</returns>
+        /// <remarks>
+        /// Este método é usado para atualizações em tempo real na interface do utilizador,
+        /// excluindo mensagens de suporte (que começam com "support_").
+        /// </remarks>
         public async Task<IActionResult> UnreadMessageCount()
         {
             var currentUser = await _userManager.GetUserAsync(User);
@@ -115,8 +151,15 @@ namespace SecondChance.Controllers
                                 !m.ConversationId.StartsWith("support_"));
 
             return Json(new { count });
-        }
-        
+        }          /// <summary>
+        /// Obtém todas as conversas de um utilizador específico.
+        /// </summary>
+        /// <param name="userId">ID do utilizador cujas conversas serão recuperadas</param>
+        /// <returns>Lista de conversas do utilizador organizadas por data da última mensagem</returns>
+        /// <remarks>
+        /// Este método obtém todas as conversas privadas do utilizador (excluindo conversas de suporte),
+        /// as agrupa por ID de conversa e devolve detalhes sobre cada conversa.
+        /// </remarks>
         private async Task<List<ConversationViewModel>> GetUserConversations(string userId)
         {
             var messages = await _context.ChatMessages
@@ -144,8 +187,18 @@ namespace SecondChance.Controllers
                 })
                 .OrderByDescending(c => c.LastMessageTime)
                 .ToList();
-        }
-
+        }        
+        /// <summary>
+        /// Gera um ID único para uma conversa entre dois utilizadores.
+        /// </summary>
+        /// <param name="user1Id">ID do primeiro utilizador</param>
+        /// <param name="user2Id">ID do segundo utilizador</param>
+        /// <returns>String representando o ID único da conversa</returns>
+        /// <remarks>
+        /// O ID da conversa é criado ordenando os IDs dos utilizadores alfabeticamente
+        /// e depois concatenando-os com um underscore, garantindo que a mesma conversa 
+        /// sempre tenha o mesmo ID independentemente da ordem dos utilizadores.
+        /// </remarks>
         private string GetConversationId(string user1Id, string user2Id)
         {
             return string.Join("_", new[] { user1Id, user2Id }.OrderBy(id => id));

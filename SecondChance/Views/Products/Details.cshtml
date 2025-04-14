@@ -347,7 +347,6 @@
                     <p>Informações sobre o doador não disponíveis.</p>
                 }
             </div>
-
             @if (User.Identity?.IsAuthenticated == true && Model.OwnerId != User.FindFirstValue(ClaimTypes.NameIdentifier))
             {
                 <div class="donor-actions">
@@ -356,9 +355,6 @@
                     </a>
                     <a asp-area="Identity" asp-page="/Account/Manage/Index" asp-route-userId="@Model.OwnerId" class="btn btn-outline-secondary">
                         <i class="fas fa-user"></i> Ver Perfil
-                    </a>
-                    <a asp-controller="Report" asp-action="ReportUser" asp-route-id="@Model.OwnerId" class="btn btn-outline-danger">
-                        <i class="fas fa-flag"></i> Reportar Utilizador
                     </a>
                 </div>
             }
@@ -397,23 +393,10 @@
         </a>
     </div>
 </div>
-
 <script>
     function updateMainImage(imagePath, thumbnail) {
         document.getElementById('mainImage').src = imagePath;
-
-        document.querySelectorAll('.thumbnail').forEach(thumb => {
-            thumb.classList.remove('active');
-        });
-
-        if (thumbnail) {
-            thumbnail.classList.add('active');
-        }
+        document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+        if (thumbnail) thumbnail.classList.add('active');
     }
-    document.addEventListener('DOMContentLoaded', function () {
-        const firstThumb = document.querySelector('.thumbnail');
-        if (firstThumb) {
-            firstThumb.classList.add('active');
-        }
-    });
 </script>

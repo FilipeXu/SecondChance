@@ -19,14 +19,7 @@ namespace TestProject1.Automation
             Wait.Until(d => d.FindElement(By.TagName("body")).Displayed);
         }
 
-        private IWebElement FindVisibleElement(By by)
-        {
-            try {
-                var element = Driver.FindElement(by);
-                return element.Displayed ? element : null;
-            }
-            catch { return null; }
-        }
+
 
         private void OpenEditForm()
         {
@@ -34,9 +27,6 @@ namespace TestProject1.Automation
             ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].click();", editButton);
             Wait.Until(d => d.FindElement(By.Id("profile-form")).Displayed);
         }
-
-        private bool IsSuccessMessage() => 
-            Driver.FindElements(By.CssSelector(".status-message.status-success, .alert-success")).Count > 0;
 
         [Fact]
         public void ProfilePage_LoadsSuccessfully_WhenLoggedIn()
@@ -77,7 +67,7 @@ namespace TestProject1.Automation
             Login(DefaultEmail, DefaultPassword);
             GoToProfile();
             OpenEditForm();
-            
+
             var privateTab = Driver.FindElement(By.CssSelector("[data-tab='private-data']"));
             ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].click();", privateTab);
             

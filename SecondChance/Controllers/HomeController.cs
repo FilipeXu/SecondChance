@@ -4,25 +4,42 @@ using SecondChance.Models;
 
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável pela gestão das páginas principais da aplicação.
+    /// Implementa funcionalidades para a página inicial e de privacidade.
+    /// </summary>
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        /// <summary>
+        /// Construtor do HomeController.
+        /// </summary>
+        public HomeController()
         {
-            _logger = logger;
         }
 
+        /// <summary>
+        /// Apresenta a página inicial da aplicação.
+        /// </summary>
+        /// <returns>Vista da página inicial</returns>
         public IActionResult Index()
         {
             return View();
         }
 
+        /// <summary>
+        /// Apresenta a página de política de privacidade.
+        /// </summary>
+        /// <returns>Vista da página de privacidade</returns>
         public IActionResult Privacy()
         {
             return View();
         }
 
+        /// <summary>
+        /// Apresenta a página de erro quando ocorre uma exceção na aplicação.
+        /// </summary>
+        /// <returns>Vista com informações sobre o erro</returns>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

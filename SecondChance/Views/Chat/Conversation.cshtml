@@ -4,6 +4,7 @@
     var currentUserId = ViewData["CurrentUserId"] as string;
     var otherUser = ViewData["OtherUser"] as SecondChance.Models.User;
     var otherUserName = ViewData["OtherUserName"] as string;
+    var currentUserName = ViewData["CurrentUserName"] as string;
 }
 
 <div class="container-fluid mt-3">
@@ -285,22 +286,67 @@
 </style>
 
 @section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
     <script>
-        $(document).ready(function() {
-            function scrollToBottom() {
-                var messageContainer = document.getElementById('messageContainer');
+        $(document).ready(() => {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .withAutomaticReconnect()
+                .build();
+
+            const currentUserId = "@currentUserId";
+            const receiverId = "@otherUser.Id";
+            const conversationId = "@GetConversationId(currentUserId, otherUser.Id)";
+            const scrollToBottom = () => {
+                const messageContainer = document.getElementById('messageContainer');
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }
-            
             scrollToBottom();
-            $("#messageForm").submit(function(e) {
-                var messageInput = $("#messageInput");
-                if (messageInput.val().trim() === '') {
-                    e.preventDefault();
-                    messageInput.focus();
-                    return false;
+            connection.on("ReceiveMessage", (user, userId, message, timestamp) => {
+                const isSent = userId === currentUserId;
+                $("#messageContainer").append(`
+                    <div class="message ${isSent ? "message-sent" : "message-received"}">
+                        <div class="message-content">
+                            ${!isSent ? `<div class="message-sender">${user}</div>` : ''}
+                            <p>${message}</p>
+                            <span class="message-time">${new Date().toLocaleString()}</span>
+                        </div>
+                    </div>
+                `);
+                scrollToBottom();
+            });
+            connection.start()
+                .then(() => connection.invoke("JoinConversation", conversationId))
+                .catch(err => console.error("Erro ao conectar ao hub:", err));
+            $("#messageForm").submit(e => {
+                e.preventDefault();
+                
+                const $input = $("#messageInput");
+                const content = $input.val().trim();
+                
+                if (!content) {
+                    $input.focus();
+                    return;
                 }
+                
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("SendMessage")",
+                    data: { receiverId, content },
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: () => $input.val(''),
+                    error: () => alert("Erro ao enviar mensagem. Tente novamente.")
+                });
             });
         });
+        
+        @functions {
+            string GetConversationId(string user1Id, string user2Id)
+            {
+                return string.Join("_", new[] { user1Id, user2Id }.OrderBy(id => id));
+            }
+        }
     </script>
-} 
+}

@@ -10,7 +10,7 @@ using SecondChance.Models;
 using System.Security.Claims;
 
 
-namespace TestProject1;
+namespace TestProject1.Unit;
 
 public class ProductsControllerTests 
 {
@@ -44,7 +44,7 @@ public class ProductsControllerTests
         Id = 1,
         Name = "Test Product", 
         Description = "Test Description",
-        Category = Category.Roupa,
+        Category = Category.Outros,
         Location = "Test Location",
         PublishDate = DateTime.UtcNow,
         Image = "/path/to/image.jpg",
