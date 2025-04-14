@@ -1,12 +1,15 @@
+using Humanizer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using SecondChance.Data;
 using SecondChance.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 #if DEBUG
 namespace SecondChance.Controllers
@@ -40,10 +43,11 @@ namespace SecondChance.Controllers
                     Image = "/Images/default.jpg",
                     Description = "Test Description",
                     PhoneNumber = "1234567890",
+                    IsAdmin = true,
                     IsActive = true,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     BirthDate = new DateTime(1990, 1, 1),
-
+                   
                 };
 
                 var result = await _userManager.CreateAsync(user, "Test@123456");
@@ -74,6 +78,7 @@ namespace SecondChance.Controllers
                     Description = "Test Description",
                     PhoneNumber = "1234567890",
                     IsActive = true,
+                    IsAdmin = false,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     BirthDate = new DateTime(1990, 1, 1),
                 };
@@ -92,7 +97,7 @@ namespace SecondChance.Controllers
                 }
             }
 
-            var mainUser = await _userManager.FindByEmailAsync("test@example.com");
+       var mainUser = await _userManager.FindByEmailAsync("test@example.com");
             var secondaryUser = await _userManager.FindByEmailAsync("secondary@example.com");
             if (!await _context.Products.AnyAsync(p => p.OwnerId == mainUser.Id && p.Name.Contains("Test Product")))
             {
@@ -102,7 +107,7 @@ namespace SecondChance.Controllers
                     {
                         Name = "Test Product 1",
                         Description = "First test product",
-                        Category = Category.Eletrônicos,
+                        Category = Category.EletrÃ´nicos,
                         PublishDate = DateTime.Now.AddDays(-10),
                         OwnerId = mainUser.Id,
                         Location = mainUser.Location,
@@ -128,7 +133,7 @@ namespace SecondChance.Controllers
                     {
                         Name = "Secondary Test Product",
                         Description = "Secondary user test product",
-                        Category = Category.Eletrônicos,
+                        Category = Category.EletrÃ´nicos,
                         PublishDate = DateTime.Now.AddDays(-15),
                         OwnerId = secondaryUser.Id,
                         Location = secondaryUser.Location,
@@ -139,6 +144,88 @@ namespace SecondChance.Controllers
                 await _context.Products.AddRangeAsync(secondaryProducts);
                 await _context.SaveChangesAsync();
             }
+          
+            if (!await _context.Comments.AnyAsync(c => c.AuthorId == mainUser.Id && c.ProfileId == secondaryUser.Id))
+            {
+                var comments = new List<Comment>
+                {
+                    new Comment
+                    {
+                        Content = "This is a test comment from main user",
+                        AuthorId = mainUser.Id,
+                        Author = mainUser,
+                        ProfileId = secondaryUser.Id,
+                        Profile = secondaryUser,
+                        CreatedAt = DateTime.Now.AddDays(-1)
+                    },
+                    new Comment
+                    {
+                        Content = "This is a test comment from secondary user",
+                        AuthorId = secondaryUser.Id,
+                        Author = secondaryUser,
+                        ProfileId = mainUser.Id,
+                        Profile = mainUser,
+                        CreatedAt = DateTime.Now.AddDays(-2)
+                    }
+                };
+
+                await _context.Comments.AddRangeAsync(comments);
+                await _context.SaveChangesAsync();
+            }
+            if (!await _context.UserReports.AnyAsync(r => r.ReporterUserId == mainUser.Id && r.ReportedUserId == secondaryUser.Id))
+            {
+                var reports = new List<UserReport>
+                {
+                    new UserReport
+                    {
+                        ReporterUserId = mainUser.Id,
+                        ReporterUser = mainUser,
+                        ReportedUserId = secondaryUser.Id,
+                        ReportedUser = secondaryUser,
+                        Reason = "Test report reason",
+                        Details = "Additional details for test report", 
+                        ReportDate = DateTime.Now.AddDays(-1),
+                        IsResolved = false,
+                        Resolution = null,
+                        ResolvedDate = null,
+                        ResolvedById = null
+                    }
+                };
+
+                await _context.UserReports.AddRangeAsync(reports);
+                await _context.SaveChangesAsync();
+            }
+            if (!await _context.ChatMessages.AnyAsync(m => m.SenderId == mainUser.Id && m.ReceiverId == secondaryUser.Id))
+            {
+                var mainToSecondaryConversationId = $"{mainUser.Id}-{secondaryUser.Id}";
+                var secondaryToMainConversationId = $"{secondaryUser.Id}-{mainUser.Id}";
+
+                var chatMessages = new List<ChatMessage>
+                {
+                    new ChatMessage
+                    {
+                        SenderId = mainUser.Id,
+                        ReceiverId = secondaryUser.Id,
+                        Content = "This is a test message from main user",
+                        SentAt = DateTime.Now.AddDays(-1),
+                        IsRead = true,
+                        ConversationId = mainToSecondaryConversationId
+                    },
+                    new ChatMessage
+                    {
+                        SenderId = secondaryUser.Id,
+                        ReceiverId = mainUser.Id,
+                        Content = "This is a test message from secondary user",
+                        SentAt = DateTime.Now.AddDays(-2),
+                        IsRead = true,
+                        ConversationId = secondaryToMainConversationId
+                    }
+                };
+
+                await _context.ChatMessages.AddRangeAsync(chatMessages);
+                await _context.SaveChangesAsync();
+            }
+
 
 
             return Ok("Test data created successfully");
@@ -147,10 +234,10 @@ namespace SecondChance.Controllers
         [HttpGet("reset-test-database")]
         public async Task<IActionResult> ResetTestDatabase()
         {
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
-            return Ok("Banco de dados resetado com sucesso");
-
+           await _context.Database.EnsureDeletedAsync();
+        await _context.Database.EnsureCreatedAsync();
+        return Ok("Banco de dados resetado com sucesso");
+           
         }
     }
 }

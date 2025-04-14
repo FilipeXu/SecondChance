@@ -16,7 +16,16 @@ namespace TestProject1.Automation
         {
             SetElementValueByJS("Name", name);
             SetElementValueByJS("Description", description);
-            SetElementValueByJS("Category", category);
+            var categoryElement = Driver.FindElement(By.Id("Category"));
+            if (categoryElement.TagName.ToLower() == "select")
+            {
+                var selectCategory = new SelectElement(categoryElement);
+                selectCategory.SelectByText(category);
+            }
+            else
+            {
+                SetElementValueByJS("Category", category);
+            }
 
             if (Driver.FindElements(By.Id("Price")).Count > 0)
             {
@@ -49,7 +58,6 @@ namespace TestProject1.Automation
             if (fileInputs.Count > 0)
             {
                 fileInputs[0].SendKeys(tempImagePath);
-                Thread.Sleep(1000);
             }
         }
 
@@ -62,8 +70,7 @@ namespace TestProject1.Automation
         [Fact]
         public void CreateProduct_LoggedInUser_Success()
         {
-            try
-            {
+            
                 SetupTestData();
                 Login("test@example.com", "Test@123456");
                 Driver.Navigate().GoToUrl($"{BaseUrl}/Products/Create");
@@ -72,8 +79,9 @@ namespace TestProject1.Automation
                 
                 var productName = $"Test Product {Guid.NewGuid()}";
                 
-                FillProductForm(productName, "Test description with detailed information", "Electronics", "Test Location");
+                FillProductForm(productName, "Test description with detailed information", "Roupa", "Test Location");
                 UploadTestImage();
+                Thread.Sleep(1000);
                 SubmitForm();
                 
                 var longWait = new WebDriverWait(Driver, TimeSpan.FromSeconds(20));
@@ -89,12 +97,8 @@ namespace TestProject1.Automation
                 }
                 
                 Assert.True(true, "Product created successfully");
-            }
-            catch (Exception)
-            {
-                ((ITakesScreenshot)Driver).GetScreenshot().SaveAsFile("CreateProduct_Error.png");
-                throw;
-            }
+            
+            
         }
 
         private IWebElement FindDeleteButton()
@@ -118,7 +122,6 @@ namespace TestProject1.Automation
             }
 
             Driver.Navigate().GoToUrl($"{BaseUrl}/Products/MyProducts");
-            Thread.Sleep(1000);
 
             foreach (var selector in new[] {
                 By.LinkText("Delete"),
@@ -137,22 +140,18 @@ namespace TestProject1.Automation
 
         private void HandleDeleteConfirmation()
         {
-            Thread.Sleep(1000);
 
             if (Driver.FindElements(By.CssSelector("button[type='submit'], input[type='submit'], .btn-primary")).Count > 0)
             {
                 var confirmButton = Driver.FindElement(By.CssSelector("button[type='submit'], input[type='submit'], .btn-primary"));
                 ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].click();", confirmButton);
             }
-
-            Thread.Sleep(1000);
         }
 
         [Fact]
         public void DeleteProduct_Owner_Success()
         {
-            try
-            {
+            
                 SetupTestData();
                 Login("test@example.com", "Test@123456");
                 Driver.Navigate().GoToUrl($"{BaseUrl}/Products/Details/1");
@@ -167,16 +166,11 @@ namespace TestProject1.Automation
                 
                 ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].scrollIntoView({block: 'center'});", deleteButton);
                 ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].click();", deleteButton);
-                
+                Thread.Sleep(1000);
                 HandleDeleteConfirmation();
                 
                 Assert.True(true, "Delete operation completed");
-            }
-            catch (Exception)
-            {
-                ((ITakesScreenshot)Driver).GetScreenshot().SaveAsFile("DeleteProduct_Error.png");
-                throw;
-            }
+            
         }
     }
 }

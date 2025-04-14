@@ -16,8 +16,8 @@ namespace SeleniumTests
             var options = new ChromeOptions();
             Driver = new ChromeDriver(options);
             Driver.Manage().Window.Maximize();
-            Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(5);
-            Wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(10));
+            Driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(2);
+            Wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(4));
         }
 
         protected void SetupTestData()
@@ -41,23 +41,6 @@ namespace SeleniumTests
             Driver.Navigate().GoToUrl($"{BaseUrl}/Identity/Account/Login");
         }
 
-        protected void GoToRegisterPage()
-        {
-            Driver.Navigate().GoToUrl($"{BaseUrl}/Identity/Account/Register");
-        }
-
-        protected bool IsLoggedIn(string email = null)
-        {
-            bool hasLogoutLink = Driver.FindElements(By.CssSelector("form[asp-page='/Account/Logout'] button")).Count > 0;
-            bool hasManageLink = Driver.FindElements(By.CssSelector("a[href*='/Account/Manage']")).Count > 0;
-            bool hasGreeting = email != null && Driver.FindElements(By.PartialLinkText(email)).Count > 0;
-            return hasLogoutLink || hasManageLink || hasGreeting;
-        }
-
-        protected bool IsLoggedOut()
-        {
-            return Driver.FindElements(By.CssSelector("a[href*='/Account/Login'], a[href*='/Account/Register']")).Count > 0;
-        }
 
         protected void Login(string email, string password, bool rememberMe = true)
         {
@@ -88,16 +71,5 @@ namespace SeleniumTests
             }
         }
 
-
-
-        protected void Logout()
-        {
-            var logoutButtons = Driver.FindElements(By.CssSelector("form[asp-page='/Account/Logout'] button"));
-            if (logoutButtons.Count > 0)
-            {
-                logoutButtons[0].Click();
-                Wait.Until(d => d.Url.Contains("/Identity/Account/Logout") || d.Url.Contains("/Home/Index"));
-            }
-        }
     }
 }
