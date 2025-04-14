@@ -1,4 +1,5 @@
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 using SeleniumTests;
 
 namespace TestProject1.Automation
@@ -15,11 +16,11 @@ namespace TestProject1.Automation
 
             var searchInput = Driver.FindElement(By.Id("searchInput"));
             searchInput.Clear();
-            searchInput.SendKeys("Electronics");
+            searchInput.SendKeys("Test Product 1");
             Driver.FindElement(By.Id("searchButton")).Click();
 
-            Wait.Until(d => d.PageSource.Contains("Electronics"));
-            Assert.Contains("Electronics", Driver.PageSource);
+            Wait.Until(d => d.PageSource.Contains("Test Product 1"));
+            Assert.Contains("Test Product 1", Driver.PageSource);
         }
 
         [Fact]
@@ -29,17 +30,23 @@ namespace TestProject1.Automation
             
             Driver.Navigate().GoToUrl($"{BaseUrl}/Products");
             Wait.Until(d => d.FindElements(By.Name("category")).Count > 0);
+            var categoryElement = Driver.FindElement(By.Name("category"));
+            if (categoryElement.TagName.ToLower() == "select")
+            {
+                var selectCategory = new SelectElement(categoryElement);
+                selectCategory.SelectByText("Roupa");  
+            }
+            else
+            {
+                ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].value = arguments[1]", categoryElement, "Roupa");
+            }
+            Wait.Until(d => d.PageSource.Contains("Roupa"));
+            Wait.Until(d => d.FindElements(By.CssSelector(".filter-tag")).Count > 0);
 
-            var categorySelect = Driver.FindElement(By.Name("category"));
-            var selectElement = new OpenQA.Selenium.Support.UI.SelectElement(categorySelect);
-            selectElement.SelectByText("Electronics");
-
-            Thread.Sleep(1000);
-
-            Assert.Contains("Electronics", Driver.PageSource);
+            Assert.Contains("Roupa", Driver.PageSource);
 
             var filterTag = Driver.FindElement(By.CssSelector(".filter-tag"));
-            Assert.Contains("Electronics", filterTag.Text);
+            Assert.Contains("Roupa", filterTag.Text);
         }
     }
 }

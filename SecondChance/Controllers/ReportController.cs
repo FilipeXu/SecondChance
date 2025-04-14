@@ -9,18 +9,32 @@ using System.Threading.Tasks;
 
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável pela gestão de denúncias de utilizadores.
+    /// Implementa funcionalidades para reportar comportamentos inadequados.
+    /// </summary>
     [Authorize]
     public class ReportController : Controller
     {
         private readonly UserManager<User> _userManager;
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Construtor do ReportController.
+        /// </summary>
+        /// <param name="userManager">Gestor de utilizadores para acesso a funcionalidades de identidade</param>
+        /// <param name="context">Contexto da base de dados</param>
         public ReportController(UserManager<User> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
         }
 
+        /// <summary>
+        /// Apresenta o formulário para denunciar um utilizador.
+        /// </summary>
+        /// <param name="id">ID do utilizador a ser denunciado</param>
+        /// <returns>Vista com formulário de denúncia</returns>
         public async Task<IActionResult> ReportUser(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -43,6 +57,11 @@ namespace SecondChance.Controllers
             return View(viewModel);
         }
 
+        /// <summary>
+        /// Processa o formulário de denúncia de um utilizador.
+        /// </summary>
+        /// <param name="viewModel">Dados da denúncia</param>
+        /// <returns>Redireciona para a página de perfil após submissão bem-sucedida</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReportUser(ReportUserViewModel viewModel)

@@ -11,6 +11,10 @@ using SecondChance.Models;
 
 namespace SecondChance.Areas.Identity.Pages.Account
 {
+    /// <summary>
+    /// Modelo da página de autenticação externa.
+    /// Gere o processo de autenticação usando provedores externos como Google, Facebook, etc.
+    /// </summary>
     [AllowAnonymous]
     public class ExternalLoginModel : PageModel
     {
@@ -19,59 +23,64 @@ namespace SecondChance.Areas.Identity.Pages.Account
         private readonly IUserStore<User> _userStore;
         private readonly IUserEmailStore<User> _emailStore;
         private readonly IEmailSender _emailSender;
-        private readonly ILogger<ExternalLoginModel> _logger;
 
+        /// <summary>
+        /// Construtor da classe ExternalLoginModel.
+        /// </summary>
+        /// <param name="signInManager">Gestor de autenticação para operações de início de sessão</param>
+        /// <param name="userManager">Gestor de utilizadores que fornece APIs para gerir utilizadores</param>
+        /// <param name="userStore">Armazenamento responsável pelos dados dos utilizadores</param>
+        /// <param name="emailSender">Serviço para envio de emails</param>
         public ExternalLoginModel(
             SignInManager<User> signInManager,
             UserManager<User> userManager,
             IUserStore<User> userStore,
-            ILogger<ExternalLoginModel> logger,
             IEmailSender emailSender)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _userStore = userStore;
             _emailStore = GetEmailStore();
-            _logger = logger;
             _emailSender = emailSender;
         }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Modelo com os dados de entrada para a autenticação externa
         /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Nome de exibição do provedor de autenticação externa
         /// </summary>
         public string ProviderDisplayName { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// URL de retorno após a autenticação
         /// </summary>
         public string ReturnUrl { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Mensagem de erro temporária para exibição ao utilizador
         /// </summary>
         [TempData]
         public string ErrorMessage { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Classe que representa os dados do formulário de autenticação externa
         /// </summary>
         public class InputModel
         {
+            /// <summary>
+            /// Nome completo do utilizador
+            /// </summary>
             [Required(ErrorMessage = "O nome completo é obrigatório")]
             [Display(Name = "Nome Completo")]
             public string FullName { get; set; }
 
+            /// <summary>
+            /// Data de nascimento do utilizador
+            /// </summary>
             [Required(ErrorMessage = "A data de nascimento é obrigatória")]
             [DataType(DataType.Date)]
             [MaximumAge(125, ErrorMessage = "Idade máxima permitida é 125 anos")]
@@ -79,20 +88,36 @@ namespace SecondChance.Areas.Identity.Pages.Account
             [Display(Name = "Data de Nascimento")]
             public DateTime BirthDate { get; set; }
             
+            /// <summary>
+            /// Endereço de email do utilizador
+            /// </summary>
             [Required(ErrorMessage = "O email é obrigatório")]
             [EmailAddress(ErrorMessage = "Email inválido")]
             [Display(Name = "Email")]
             public string Email { get; set; }
             
             /// <summary>
-            /// Option to reactivate a previously deactivated account during login
+            /// Opção para reativar uma conta previamente desativada durante o início de sessão
             /// </summary>
             [Display(Name = "Reativar conta desativada")]
             public bool ReactivateAccount { get; set; }
         }
 
+        /// <summary>
+        /// Manipula o pedido GET para a página de autenticação externa.
+        /// Redireciona para a página de início de sessão.
+        /// </summary>
+        /// <returns>Redirecionamento para a página de início de sessão</returns>
         public IActionResult OnGet() => RedirectToPage("./Login");
 
+        /// <summary>
+        /// Manipula o pedido POST para iniciar a autenticação externa.
+        /// Configura as propriedades de autenticação para o provedor externo.
+        /// </summary>
+        /// <param name="provider">Nome do provedor de autenticação externa</param>
+        /// <param name="returnUrl">URL para redirecionar após autenticação bem-sucedida</param>
+        /// <param name="reactivate">Indica se a autenticação está sendo feita para reativação de conta</param>
+        /// <returns>Desafio de autenticação para o provedor externo</returns>
         public IActionResult OnPost(string provider, string returnUrl = null, bool reactivate = false)
         {
             var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl, reactivate });
@@ -100,6 +125,14 @@ namespace SecondChance.Areas.Identity.Pages.Account
             return new ChallengeResult(provider, properties);
         }
 
+        /// <summary>
+        /// Manipula o retorno da autenticação externa.
+        /// Processa as informações recebidas do provedor externo.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após processamento</param>
+        /// <param name="remoteError">Erro reportado pelo provedor externo, se houver</param>
+        /// <param name="reactivate">Indica se deve reativar uma conta inativa</param>
+        /// <returns>Redirecionamento após processamento da autenticação</returns>
         public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null, bool reactivate = false)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
@@ -161,7 +194,6 @@ namespace SecondChance.Areas.Identity.Pages.Account
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
             if (result.Succeeded)
             {
-                _logger.LogInformation("{Name} fez login com o provedor {LoginProvider}.", info.Principal.Identity.Name, info.LoginProvider);
                 return LocalRedirect(returnUrl);
             }
             if (result.IsLockedOut)
@@ -180,6 +212,12 @@ namespace SecondChance.Areas.Identity.Pages.Account
             }
         }
 
+        /// <summary>
+        /// Manipula o retorno do callback POST da autenticação externa.
+        /// Processa os dados após o retorno do provedor externo.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após processamento</param>
+        /// <returns>Redirecionamento após processamento da autenticação</returns>
         public async Task<IActionResult> OnPostCallbackAsync(string returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
@@ -218,6 +256,12 @@ namespace SecondChance.Areas.Identity.Pages.Account
             return Page();
         }
 
+        /// <summary>
+        /// Manipula a confirmação de dados adicionais para autenticação externa.
+        /// Cria um novo utilizador ou associa a autenticação externa a um utilizador existente.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após processamento</param>
+        /// <returns>Redirecionamento após processamento da autenticação</returns>
         public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
@@ -243,28 +287,28 @@ namespace SecondChance.Areas.Identity.Pages.Account
                         return LocalRedirect(returnUrl);
                     }
                     
-                    ModelState.AddModelError("Input.Email", "Este email já está registrado. Por favor, faça login com sua senha ou utilize outro email.");
+                    ModelState.AddModelError("Input.Email", "Este email já está registado. Por favor, faça login com sua senha ou utilize outro email.");
                     return Page();
                 }
 
                 var user = CreateUser();
                 user.Location = "Por definir";
                 user.JoinDate = DateTime.Now;
-                user.Image = "Por definir";
+                user.Image = "/Images/Default.jpg";
                 user.PhoneNumber = "Por definir";
                 user.Description = "Escreva algo sobre si e o seu numero de telemóvel...";
-                user.IsActive = true;
-                user.FullName = Input.FullName;
+                user.IsActive = true;                user.FullName = Input.FullName;
                 user.BirthDate = Input.BirthDate;
                 user.PermanentlyDisabled = false;
                 user.EmailConfirmed = true;
-
+                
                 bool isFirstUser = !_userManager.Users.Any();
                 if (isFirstUser)
                 {
                     user.IsAdmin = true;
                     user.IsFirstUser = true;
                 }
+
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -291,6 +335,11 @@ namespace SecondChance.Areas.Identity.Pages.Account
             return Page();
         }
 
+        /// <summary>
+        /// Cria uma nova instância da classe User.
+        /// </summary>
+        /// <returns>Nova instância da classe User</returns>
+        /// <exception cref="InvalidOperationException">Ocorre se não for possível criar uma instância da classe User</exception>
         private User CreateUser()
         {
             try
@@ -305,11 +354,16 @@ namespace SecondChance.Areas.Identity.Pages.Account
             }
         }
 
+        /// <summary>
+        /// Obtém o armazenamento de emails para utilizadores.
+        /// </summary>
+        /// <returns>Interface para gerir emails de utilizadores</returns>
+        /// <exception cref="NotSupportedException">Ocorre se o gestor de utilizadores não suportar email</exception>
         private IUserEmailStore<User> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
-                throw new NotSupportedException("A UI padrão requer uma loja de usuário com suporte a e-mail.");
+                throw new NotSupportedException("The default UI requires a user store with email support.");
             }
             return (IUserEmailStore<User>)_userStore;
         }

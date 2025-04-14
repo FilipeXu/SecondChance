@@ -6,15 +6,28 @@ using System.Globalization;
 
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável pelas estatísticas da plataforma.
+    /// Fornece dados agregados sobre produtos, utilizadores e atividade na plataforma.
+    /// </summary>
     public class StatisticsController : Controller
     {
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Construtor do StatisticsController.
+        /// </summary>
+        /// <param name="context">Contexto da base de dados</param>
         public StatisticsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
+        /// <summary>
+        /// Apresenta a página com estatísticas gerais da plataforma.
+        /// Inclui dados sobre produtos, utilizadores, doações e categorias.
+        /// </summary>
+        /// <returns>Vista com estatísticas da plataforma</returns>
         public async Task<IActionResult> Index()
         {
             var viewModel = new StatisticsViewModel();

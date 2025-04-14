@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecondChance.Data;
+using SecondChance.Hubs;
 using SecondChance.Models;
 using SecondChance.ViewModels;
 using System;
@@ -12,23 +14,43 @@ using System.Threading.Tasks;
 
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável pela gestão do suporte ao utilizador.
+    /// Implementa funcionalidades para FAQ e chat de suporte.
+    /// </summary>
     public class SupportController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public SupportController(ApplicationDbContext context, UserManager<User> userManager)
+        /// <summary>
+        /// Construtor do SupportController.
+        /// </summary>
+        /// <param name="context">Contexto da base de dados</param>
+        /// <param name="userManager">Gestor de utilizadores</param>
+        /// <param name="hubContext">Contexto do ChatHub para SignalR</param>
+        public SupportController(ApplicationDbContext context, UserManager<User> userManager, IHubContext<ChatHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
+            _hubContext = hubContext;
         }
 
+        /// <summary>
+        /// Verifica se o utilizador atual é um administrador.
+        /// </summary>
+        /// <returns>Verdadeiro se o utilizador for administrador, falso caso contrário</returns>
         private async Task<bool> IsAdmin()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             return currentUser != null && currentUser.IsAdmin;
         }
 
+        /// <summary>
+        /// Apresenta a página inicial do suporte com perguntas frequentes.
+        /// </summary>
+        /// <returns>Vista com lista de perguntas frequentes</returns>
         public IActionResult Index()
         {
             var faqs = new List<SupportFAQ>
@@ -38,8 +60,8 @@ namespace SecondChance.Controllers
                     Answer = "Para doar um produto, faça login na sua conta, clique em 'Produtos' no menu superior e depois em 'Adicionar Produto'. Preencha o formulário com os detalhes do seu produto e envie."
                 },
                 new SupportFAQ { 
-                    Question = "Posso editar ou remover minha doação?", 
-                    Answer = "Sim, pode editar ou remover suas doações a qualquer momento. Vá para a página do produto, para o seu perfil ou para a página de pesquisa, onde verá opções para editar ou excluir o item."
+                    Question = "Posso editar ou remover a minha doação?", 
+                    Answer = "Sim, pode editar ou remover as suas doações a qualquer momento. Vá para a página do produto, para o seu perfil ou para a página de pesquisa, onde verá opções para editar ou excluir o item."
                 },
                 new SupportFAQ { 
                     Question = "Como entro em contato com o doador?", 
@@ -54,14 +76,18 @@ namespace SecondChance.Controllers
                     Answer = "Vá até ao perfil de um utilizador e clique nas estrelas para avaliar o utilizador."
                 },
                 new SupportFAQ { 
-                    Question = "Como posso alterar minha senha?", 
-                    Answer = "Para alterar sua senha, vá até ao perfil, clique em editar perfil e clique em dados privados. Siga as instruções para redefinir sua senha."
+                    Question = "Como posso alterar a minha palavra-passe?", 
+                    Answer = "Para alterar a sua palavra-passe, vá até ao perfil, clique em editar perfil e clique em dados privados. Siga as instruções para redefinir a sua palavra-passe."
                 },
             };
 
             return View(faqs);
         }
 
+        /// <summary>
+        /// Apresenta o chat de suporte para o utilizador atual.
+        /// </summary>
+        /// <returns>Vista com o histórico de mensagens do chat de suporte</returns>
         [Authorize]
         public async Task<IActionResult> Chat()
         {
@@ -92,6 +118,11 @@ namespace SecondChance.Controllers
             return View(messages);
         }
 
+        /// <summary>
+        /// Processa o envio de uma mensagem de suporte.
+        /// </summary>
+        /// <param name="content">Conteúdo da mensagem</param>
+        /// <returns>Redireciona para o chat após envio da mensagem</returns>
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -108,6 +139,7 @@ namespace SecondChance.Controllers
 
             var supportChatId = $"support_{currentUser.Id}";
             var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            DateTime messageTime = DateTime.Now;
             
             if (!admins.Any())
             {
@@ -116,7 +148,7 @@ namespace SecondChance.Controllers
                     SenderId = currentUser.Id,
                     ReceiverId = currentUser.Id,
                     Content = content,
-                    SentAt = DateTime.Now,
+                    SentAt = messageTime,
                     IsRead = true,
                     ConversationId = supportChatId
                 });
@@ -130,7 +162,7 @@ namespace SecondChance.Controllers
                         SenderId = currentUser.Id,
                         ReceiverId = admin.Id,
                         Content = content,
-                        SentAt = DateTime.Now,
+                        SentAt = messageTime,
                         IsRead = false,
                         ConversationId = supportChatId
                     });
@@ -138,9 +170,21 @@ namespace SecondChance.Controllers
             }
             
             await _context.SaveChangesAsync();
+            
+            await _hubContext.Clients.Group(supportChatId).SendAsync("ReceiveSupportMessage", 
+                currentUser.FullName, 
+                currentUser.Id, 
+                content, 
+                messageTime);
+                
             return RedirectToAction(nameof(Chat));
         }
 
+        /// <summary>
+        /// Apresenta o painel de administração do suporte.
+        /// Lista todas as conversas de suporte ativas.
+        /// </summary>
+        /// <returns>Vista com lista de conversas de suporte</returns>
         [Authorize]
         public async Task<IActionResult> AdminDashboard()
         {
@@ -173,6 +217,11 @@ namespace SecondChance.Controllers
             return View(supportChats);
         }
 
+        /// <summary>
+        /// Apresenta a interface para responder a uma conversa de suporte específica.
+        /// </summary>
+        /// <param name="userId">ID do utilizador que iniciou a conversa</param>
+        /// <returns>Vista com histórico da conversa e formulário de resposta</returns>
         [Authorize]
         public async Task<IActionResult> RespondToChat(string userId)
         {
@@ -214,6 +263,12 @@ namespace SecondChance.Controllers
             return View(messages);
         }
         
+        /// <summary>
+        /// Processa o envio de uma resposta de suporte a um utilizador.
+        /// </summary>
+        /// <param name="userId">ID do utilizador destinatário</param>
+        /// <param name="content">Conteúdo da resposta</param>
+        /// <returns>Redireciona para a conversa após envio da resposta</returns>
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -235,20 +290,29 @@ namespace SecondChance.Controllers
                 return NotFound();
 
             var supportChatId = $"support_{userId}";
+            DateTime messageTime = DateTime.Now;
 
             try
             {
-                _context.Add(new ChatMessage
+                var message = new ChatMessage
                 {
                     SenderId = currentAdmin.Id,
                     ReceiverId = userId,
                     Content = content,
-                    SentAt = DateTime.Now,
+                    SentAt = messageTime,
                     IsRead = false,
                     ConversationId = supportChatId
-                });
+                };
                 
+                _context.Add(message);
                 await _context.SaveChangesAsync();
+                
+                await _hubContext.Clients.Group(supportChatId).SendAsync("ReceiveSupportMessage", 
+                    currentAdmin.FullName, 
+                    currentAdmin.Id, 
+                    content, 
+                    messageTime);
+                    
                 TempData["Success"] = "Resposta enviada com sucesso!";
             }
             catch (Exception)

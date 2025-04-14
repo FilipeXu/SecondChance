@@ -131,6 +131,9 @@
         width: 100%;
         margin-bottom: 10px;
         color: #444;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
     }
 
         .form-select:focus {
@@ -314,7 +317,6 @@
         color: #68B064;
     }
 
-    /* Responsive adjustments */
     @@media (max-width: 768px) {
         .search-container {
             height: auto;
@@ -607,7 +609,7 @@
                 @if (ViewBag.TotalPages > 0)
                 {
                     <div class="text-center mt-2 text-muted">
-                        <small>Mostrando página @ViewBag.CurrentPage de @ViewBag.TotalPages (@ViewBag.TotalProducts produtos)</small>
+                        <small>A mostrar a página @ViewBag.CurrentPage de @ViewBag.TotalPages (@ViewBag.TotalProducts produtos)</small>
                     </div>
                 }
             }
