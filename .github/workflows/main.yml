@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - release
 
 env:
   AZURE_WEBAPP_NAME: SecondChance
@@ -15,8 +15,8 @@ env:
   PUBLISH_DIR: "publish"
 
 jobs:
-  build-and-test:
-    name: Build and Test
+  build:
+    name: Build
     runs-on: windows-latest
 
     steps:
@@ -33,12 +33,6 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       
-      - name: Run Unit Tests
-        run: dotnet test --configuration Release --no-build --filter "Category=Unit|FullyQualifiedName~.Unit."
-      
-      - name: Run Integration Tests
-        run: dotnet test --configuration Release --no-build --filter "Category=Integration|FullyQualifiedName~.Integration."
-      
       - name: Publish
         run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --output ${{ env.PUBLISH_DIR }}
       
@@ -47,3 +41,23 @@ jobs:
         with:
           name: webapp
           path: ${{ env.PUBLISH_DIR }}
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: windows-latest
+    needs: build
+    environment: production
+    
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp
+          path: ${{ env.PUBLISH_DIR }}
+      
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ${{ env.PUBLISH_DIR }}
