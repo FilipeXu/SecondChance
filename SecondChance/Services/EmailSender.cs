@@ -6,15 +6,24 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace SecondChance.Services
 {
+    /// <summary>
+    /// Serviço responsável pelo envio de emails na plataforma.
+    /// Implementa a interface IEmailSender para integração com o sistema de Identity.
+    /// </summary>
     public class EmailSender : IEmailSender
     {
         private readonly string _smtpServer;
         private readonly int _smtpPort;
         private readonly string _fromEmailAddress;
         private readonly string _fromEmailPassword;
-        private readonly ILogger<EmailSender> _logger;
 
-        public EmailSender(IConfiguration configuration, ILogger<EmailSender> logger)
+        /// <summary>
+        /// Construtor do EmailSender.
+        /// Inicializa as configurações necessárias para o envio de emails.
+        /// </summary>
+        /// <param name="configuration">Configurações da aplicação</param>
+        /// <exception cref="ArgumentNullException">Lançada quando faltam configurações obrigatórias</exception>
+        public EmailSender(IConfiguration configuration)
         {
             _smtpServer = configuration["EmailSettings:SmtpServer"] 
                 ?? throw new ArgumentNullException("SmtpServer configuration is missing");
@@ -24,17 +33,21 @@ namespace SecondChance.Services
                 ?? throw new ArgumentNullException("FromEmail configuration is missing");
             _fromEmailPassword = configuration["EmailSettings:FromPassword"] 
                 ?? throw new ArgumentNullException("FromPassword configuration is missing");
-            _logger = logger;
+
         }
 
+        /// <summary>
+        /// Envia um email para um destinatário específico.
+        /// </summary>
+        /// <param name="email">Endereço de email do destinatário</param>
+        /// <param name="subject">Assunto do email</param>
+        /// <param name="htmlMessage">Conteúdo do email em formato HTML</param>
+        /// <exception cref="InvalidOperationException">Lançada quando ocorre um erro no envio do email</exception>
+        /// <returns>Task representando a conclusão do envio do email</returns>
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             try
             {
-                _logger.LogInformation("Attempting to send email to {email}", email);
-                _logger.LogDebug("SMTP Server: {server}, Port: {port}, From: {from}", 
-                    _smtpServer, _smtpPort, _fromEmailAddress);
-
                 var message = new MailMessage
                 {
                     From = new MailAddress(_fromEmailAddress),
@@ -59,17 +72,12 @@ namespace SecondChance.Services
                     delegate (object s, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors) 
                     { return true; };
 
-                _logger.LogInformation("Sending email...");
                 await client.SendMailAsync(message);
-                _logger.LogInformation("Email sent successfully to {email}", email);
             }
             catch (SmtpException ex)
-            {
-                _logger.LogError(ex, "SMTP Error sending email to {email}. Error: {message}", email, ex.Message);
-                
+            {               
                 if (ex.Message.Contains("Authentication Required") || ex.Message.Contains("5.7.0"))
                 {
-                    _logger.LogError("Authentication failed. Please check email and password settings.");
                     throw new InvalidOperationException(
                         "Falha na autenticação do email. Por favor, verifique se o email e a senha de app estão corretos.", ex);
                 }
@@ -79,10 +87,9 @@ namespace SecondChance.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error sending email to {email}. Error: {message}", email, ex.Message);
                 throw new InvalidOperationException(
                     "Ocorreu um erro inesperado ao enviar o email de confirmação: " + ex.Message, ex);
             }
         }
     }
-} 
+}

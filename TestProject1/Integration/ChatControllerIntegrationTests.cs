@@ -1,21 +1,37 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SecondChance.Controllers;
+using SecondChance.Hubs;
 using SecondChance.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Moq;
 using Xunit;
 
 namespace TestProject1.Integration
-{
-    public class ChatControllerIntegrationTests : IntegrationTestBase
+{    public class ChatControllerIntegrationTests : IntegrationTestBase
     {
         private readonly ChatController _controller;
-
-        public ChatControllerIntegrationTests() => 
-            _controller = new ChatController(_context, _userManager);
+        private readonly Mock<IHubContext<ChatHub>> _mockHubContext;        
+        public ChatControllerIntegrationTests()
+        {
+            _mockHubContext = CreateMockHubContext();
+            _controller = new ChatController(_context, _userManager, _mockHubContext.Object);
+        }
+          private Mock<IHubContext<ChatHub>> CreateMockHubContext()
+        {
+            var mockHubContext = new Mock<IHubContext<ChatHub>>();
+            var mockClients = new Mock<IHubClients>();
+            var mockClientProxy = new Mock<IClientProxy>();
+            
+            mockClients.Setup(clients => clients.Group(It.IsAny<string>())).Returns(mockClientProxy.Object);
+            mockHubContext.Setup(x => x.Clients).Returns(mockClients.Object);
+            
+            return mockHubContext;
+        }
 
         private void SetupControllerUser(User user)
         {

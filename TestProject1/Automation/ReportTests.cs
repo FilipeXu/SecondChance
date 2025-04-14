@@ -9,8 +9,7 @@ using SeleniumTests;
 namespace TestProject1.Automation
 {
     public class ReportTests : SeleniumTestBase
-    {
-        [Fact]
+    {        [Fact]
         public void SubmitReport_FromUserProfile_Success()
         {
             SetupTestData();
@@ -18,17 +17,27 @@ namespace TestProject1.Automation
             
             Driver.Navigate().GoToUrl($"{BaseUrl}/Products/Details/3");
             
-            WaitForElement(By.TagName("body"));
+            WaitForElement(By.TagName("body"));           
+            By[] profileSelectors = new[] {
+                By.LinkText("Ver Perfil"),
+                By.CssSelector("a.btn-outline-secondary"),
+                By.CssSelector(".donor-actions a[href*='Account/Manage/Index']"),
+                By.XPath("//a[contains(text(),'Ver Perfil')]")
+            };
             
+            IWebElement profileLink = FindFirstAvailableElement(profileSelectors);
+            ClickElementSafely(profileLink);
+            WaitForElement(By.TagName("body"));
+
             By[] reportSelectors = new[] {
-                By.LinkText("Report User"),
                 By.LinkText("Reportar Utilizador"),
-                By.CssSelector("a[href*='ReportUser']"),
-                By.CssSelector(".btn-outline-danger")
+                By.CssSelector("a.btn-outline-danger"),
+                By.CssSelector("a[href*='Report/ReportUser']"),
+                By.XPath("//a[contains(text(),'Reportar') and contains(text(),'Utilizador')]"),
+                By.XPath("//i[contains(@class,'fa-flag')]/parent::a")
             };
             
             IWebElement reportLink = FindFirstAvailableElement(reportSelectors);
-            
             ClickElementSafely(reportLink);
             
             var reasonSelect = WaitForElement(By.Id("Reason"));

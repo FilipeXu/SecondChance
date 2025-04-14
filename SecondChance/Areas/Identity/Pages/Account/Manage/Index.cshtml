@@ -950,8 +950,7 @@
                     <span class="star-display @(i <= Math.Round(Model.AverageRating) ? "filled" : "")">★</span>
                 }
                 <span class="rating-text">@Model.AverageRating.ToString("0.0") (@Model.TotalRatings avaliações)</span>
-            </div>
-
+            </div>            
             @if (!Model.IsCurrentUser && User.Identity.IsAuthenticated && Model.CanRate)
             {
                 <div class="compact-rating-widget">
@@ -977,6 +976,7 @@
                         </div>
                     </form>
                 </div>
+  
             }
         </div>
 
@@ -988,10 +988,12 @@
             @if (Model.IsCurrentUser)
             {
                 <a asp-controller="Products" asp-action="Create" class="add-btn btn">Adicionar Produto</a>
-            }
-            else
+            }            else
             {
                 <a asp-controller="Chat" asp-action="StartConversation" asp-route-userId="@Model.UserProfile.Id" class="add-btn btn">Iniciar Chat</a>
+                <a asp-controller="Report" asp-action="ReportUser" asp-route-id="@Model.UserProfile.Id" class="btn btn-outline-danger">
+                    <i class="fas fa-flag"></i> Reportar Utilizador
+                </a>
             }
         </div>
     </div>

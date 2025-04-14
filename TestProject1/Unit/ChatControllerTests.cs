@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Moq;
 using SecondChance.Controllers;
+using SecondChance.Hubs;
 using SecondChance.Models;
 using System.Security.Claims;
 using Xunit;
@@ -21,6 +23,10 @@ public class ChatControllerTests : BaseControllerTest
             .ReturnsAsync(returnUser);
         
         return userManager;
+    }
+      private Mock<IHubContext<ChatHub>> CreateHubContextMock()
+    {
+        return new Mock<IHubContext<ChatHub>>();
     }
     
     private User CreateTestUser(string id = "test-user-id", string userName = "test@example.com")
@@ -54,8 +60,8 @@ public class ChatControllerTests : BaseControllerTest
         var userManager = CreateUserManagerMock(user);
         userManager.Setup(x => x.FindByIdAsync(otherUser.Id))
             .ReturnsAsync(otherUser);
-        
-        var controller = new ChatController(context, userManager.Object);
+          var hubContext = CreateHubContextMock();
+        var controller = new ChatController(context, userManager.Object, hubContext.Object);
 
         var result = await controller.StartConversation(otherUser.Id) as RedirectToActionResult;
 
@@ -64,24 +70,24 @@ public class ChatControllerTests : BaseControllerTest
         Assert.Equal(otherUser.Id, result.RouteValues["userId"]);
     }
 
-    [Fact]
-    public async Task StartConversation_WhenUserNotAuthenticated_ReturnsChallenge()
+    [Fact]    public async Task StartConversation_WhenUserNotAuthenticated_ReturnsChallenge()
     {
         using var context = CreateTestContext();
         var userManager = CreateUserManagerMock();
-        var controller = new ChatController(context, userManager.Object);
+        var hubContext = CreateHubContextMock();
+        var controller = new ChatController(context, userManager.Object, hubContext.Object);
 
         var result = await controller.StartConversation("any-user-id");
 
         Assert.IsType<ChallengeResult>(result);
     }
 
-    [Fact]
-    public async Task SendMessage_WhenUserNotAuthenticated_ReturnsChallenge()
+    [Fact]    public async Task SendMessage_WhenUserNotAuthenticated_ReturnsChallenge()
     {
         using var context = CreateTestContext();
         var userManager = CreateUserManagerMock();
-        var controller = new ChatController(context, userManager.Object);
+        var hubContext = CreateHubContextMock();
+        var controller = new ChatController(context, userManager.Object, hubContext.Object);
 
         var result = await controller.SendMessage("any-user-id", "Hello");
 
@@ -96,12 +102,12 @@ public class ChatControllerTests : BaseControllerTest
         
         context.Users.Add(user);
         await context.SaveChangesAsync();
-        
-        var userManager = CreateUserManagerMock(user);
+          var userManager = CreateUserManagerMock(user);
         userManager.Setup(x => x.FindByIdAsync("invalid-id"))
             .ReturnsAsync((User)null);
         
-        var controller = new ChatController(context, userManager.Object);
+        var hubContext = CreateHubContextMock();
+        var controller = new ChatController(context, userManager.Object, hubContext.Object);
 
         var result = await controller.SendMessage("invalid-id", "Hello");
 

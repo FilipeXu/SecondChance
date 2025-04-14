@@ -11,24 +11,41 @@ using System.Threading.Tasks;
 
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável pelas funcionalidades de moderação da plataforma.
+    /// Implementa operações exclusivas para administradores para gestão de utilizadores e denúncias.
+    /// </summary>
     [Authorize]
     public class ModeratorController : Controller
     {
         private readonly UserManager<User> _userManager;
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Construtor do ModeratorController.
+        /// </summary>
+        /// <param name="userManager">Gestor de utilizadores para acesso a funcionalidades de identidade</param>
+        /// <param name="context">Contexto da base de dados</param>
         public ModeratorController(UserManager<User> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
         }
 
+        /// <summary>
+        /// Verifica se o utilizador atual tem privilégios de administrador.
+        /// </summary>
+        /// <returns>Verdadeiro se o utilizador for administrador, falso caso contrário</returns>
         private async Task<bool> IsAdmin()
         {
             var currentUser = await _userManager.GetUserAsync(User);
             return currentUser != null && currentUser.IsAdmin;
         }
 
+        /// <summary>
+        /// Apresenta o painel principal da área de moderação.
+        /// </summary>
+        /// <returns>Vista com estatísticas e informações resumidas para moderadores</returns>
         public async Task<IActionResult> Index()
         {
             if (!await IsAdmin())
@@ -51,6 +68,10 @@ namespace SecondChance.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Apresenta a lista de todos os utilizadores da plataforma.
+        /// </summary>
+        /// <returns>Vista com a lista de utilizadores</returns>
         public async Task<IActionResult> Users()
         {
             if (!await IsAdmin())
@@ -59,6 +80,11 @@ namespace SecondChance.Controllers
             return View(await _context.Users.ToListAsync());
         }
 
+        /// <summary>
+        /// Alterna o estado de administrador de um utilizador.
+        /// </summary>
+        /// <param name="userId">ID do utilizador</param>
+        /// <returns>Redireciona para a lista de utilizadores</returns>
         [HttpPost]
         public async Task<IActionResult> ToggleAdmin(string userId)
         {
@@ -108,6 +134,11 @@ namespace SecondChance.Controllers
             return RedirectToAction(nameof(Users));
         }
 
+        /// <summary>
+        /// Alterna o estado de ativação de um utilizador (ativar/desativar).
+        /// </summary>
+        /// <param name="userId">ID do utilizador</param>
+        /// <returns>Redireciona para a lista de utilizadores</returns>
         [HttpPost]
         public async Task<IActionResult> ToggleUserStatus(string userId)
         {
@@ -150,7 +181,11 @@ namespace SecondChance.Controllers
             return RedirectToAction(nameof(Users));
         }
 
-
+        /// <summary>
+        /// Apresenta a lista de denúncias na plataforma com opções de filtro.
+        /// </summary>
+        /// <param name="filter">Filtro para exibir denúncias ("unresolved", "resolved" ou null para todas)</param>
+        /// <returns>Vista com a lista de denúncias filtradas</returns>
         public async Task<IActionResult> Reports(string filter = null)
         {
             if (!await IsAdmin())
@@ -180,6 +215,11 @@ namespace SecondChance.Controllers
             return View(reports);
         }
 
+        /// <summary>
+        /// Apresenta os detalhes de uma denúncia específica.
+        /// </summary>
+        /// <param name="id">ID da denúncia</param>
+        /// <returns>Vista com os detalhes da denúncia</returns>
         public async Task<IActionResult> ReportDetails(int id)
         {
             if (!await IsAdmin())
@@ -197,6 +237,13 @@ namespace SecondChance.Controllers
             return View(report);
         }
 
+        /// <summary>
+        /// Processa a resolução de uma denúncia.
+        /// </summary>
+        /// <param name="id">ID da denúncia</param>
+        /// <param name="resolution">Descrição da resolução aplicada</param>
+        /// <param name="deactivateUser">Indica se o utilizador denunciado deve ser desativado</param>
+        /// <returns>Redireciona para a lista de denúncias</returns>
         [HttpPost]
         public async Task<IActionResult> ResolveReport(int id, string resolution, bool deactivateUser = false)
         {

@@ -15,6 +15,10 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável pela gestão de produtos na plataforma.
+    /// Implementa funcionalidades para listar, criar, editar, eliminar e gerir produtos.
+    /// </summary>
     public class ProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,6 +26,12 @@ namespace SecondChance.Controllers
         private readonly UserManager<User> _userManager;
         private const int PageSize = 9; 
 
+        /// <summary>
+        /// Construtor do ProductsController.
+        /// </summary>
+        /// <param name="context">Contexto da base de dados</param>
+        /// <param name="webHostEnvironment">Ambiente de hospedagem para gestão de ficheiros</param>
+        /// <param name="userManager">Gestor de utilizadores</param>
         public ProductsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment, UserManager<User> userManager)
         {
             _context = context;
@@ -29,6 +39,16 @@ namespace SecondChance.Controllers
             _userManager = userManager;
         }
 
+        /// <summary>
+        /// Apresenta a lista de produtos com opções de filtro e paginação.
+        /// </summary>
+        /// <param name="searchTerm">Termo de pesquisa para filtrar produtos</param>
+        /// <param name="category">Categoria para filtrar produtos</param>
+        /// <param name="location">Localização para filtrar produtos</param>
+        /// <param name="sortOrder">Ordem de classificação dos produtos</param>
+        /// <param name="userId">ID do utilizador para filtrar produtos</param>
+        /// <param name="page">Número da página atual</param>
+        /// <returns>Vista com lista de produtos filtrada e paginada</returns>
         public async Task<IActionResult> Index(string searchTerm, string category, string location, string sortOrder, string userId, int page = 1)
         {
             if (_context.Products == null)
@@ -115,6 +135,11 @@ namespace SecondChance.Controllers
        
         
 
+        /// <summary>
+        /// Apresenta os detalhes de um produto específico.
+        /// </summary>
+        /// <param name="id">ID do produto</param>
+        /// <returns>Vista com detalhes do produto</returns>
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -141,6 +166,10 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
+        /// <summary>
+        /// Apresenta o formulário para criar um novo produto.
+        /// </summary>
+        /// <returns>Vista com formulário de criação de produto</returns>
         [Authorize]
         public IActionResult Create()
         {
@@ -168,6 +197,13 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
+        /// <summary>
+        /// Processa a criação de um novo produto com imagens.
+        /// </summary>
+        /// <param name="product">Dados do produto</param>
+        /// <param name="imageFiles">Lista de ficheiros de imagem</param>
+        /// <param name="mainImageIndex">Índice da imagem principal</param>
+        /// <returns>Redireciona para a lista de produtos após criação bem-sucedida</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -252,6 +288,11 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
+        /// <summary>
+        /// Apresenta o formulário para editar um produto existente.
+        /// </summary>
+        /// <param name="id">ID do produto a ser editado</param>
+        /// <returns>Vista com formulário de edição do produto</returns>
         [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -279,6 +320,16 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
+        /// <summary>
+        /// Processa a edição de um produto existente.
+        /// </summary>
+        /// <param name="id">ID do produto</param>
+        /// <param name="product">Dados atualizados do produto</param>
+        /// <param name="imageFiles">Novas imagens a serem adicionadas</param>
+        /// <param name="mainImageIndex">Índice da nova imagem principal</param>
+        /// <param name="mainImagePath">Caminho da imagem principal existente</param>
+        /// <param name="removedImageIds">IDs das imagens a serem removidas</param>
+        /// <returns>Redireciona para a lista de produtos após edição bem-sucedida</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -426,6 +477,11 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
+        /// <summary>
+        /// Apresenta a página de confirmação para eliminar um produto.
+        /// </summary>
+        /// <param name="id">ID do produto a ser eliminado</param>
+        /// <returns>Vista de confirmação de eliminação</returns>
         [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -450,6 +506,11 @@ namespace SecondChance.Controllers
             return View(product);
         }
 
+        /// <summary>
+        /// Processa a eliminação de um produto.
+        /// </summary>
+        /// <param name="id">ID do produto a ser eliminado</param>
+        /// <returns>Redireciona para a lista de produtos após eliminação bem-sucedida</returns>
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -497,6 +558,12 @@ namespace SecondChance.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>
+        /// Lista os produtos de um utilizador específico.
+        /// </summary>
+        /// <param name="userId">ID do utilizador</param>
+        /// <param name="page">Número da página atual</param>
+        /// <returns>Vista com lista de produtos do utilizador</returns>
         public async Task<IActionResult> UserProducts(string userId, int page = 1)
         {
             if (string.IsNullOrEmpty(userId))
@@ -548,11 +615,21 @@ namespace SecondChance.Controllers
             return View("Index", products);
         }
 
+        /// <summary>
+        /// Verifica se um produto existe na base de dados.
+        /// </summary>
+        /// <param name="id">ID do produto</param>
+        /// <returns>Verdadeiro se o produto existir, falso caso contrário</returns>
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.Id == id);
         }
 
+        /// <summary>
+        /// Marca um produto como doado.
+        /// </summary>
+        /// <param name="id">ID do produto</param>
+        /// <returns>Redireciona para a lista de produtos após atualização bem-sucedida</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]

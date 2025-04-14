@@ -110,8 +110,8 @@ public class ModeratorControllerTests : BaseControllerTest
             ReporterUser = reporter,
             ReportedUserId = reported.Id,
             ReportedUser = reported,
-            Reason = "Inappropriate behavior",
-            Details = "User posted offensive content",
+            Reason = "Comportamento Inadequado",
+            Details = "O utilizador portou-se mal",
             ReportDate = DateTime.UtcNow.AddDays(-1)
         };
         
@@ -128,7 +128,7 @@ public class ModeratorControllerTests : BaseControllerTest
         Assert.NotNull(result);
         Assert.NotNull(model);
         Assert.Single(model);
-        Assert.Equal("Inappropriate behavior", model[0].Reason);
+        Assert.Equal("Comportamento Inadequado", model[0].Reason);
     }
     
     [Fact]
@@ -145,8 +145,8 @@ public class ModeratorControllerTests : BaseControllerTest
             ReporterUser = reporter,
             ReportedUserId = reported.Id,
             ReportedUser = reported,
-            Reason = "Inappropriate behavior",
-            Details = "User was using offensive language",
+            Reason = "Comportamento Inadequado",
+            Details = "O utilizador usou uma linguagem inapropriada",
             ReportDate = DateTime.UtcNow.AddDays(-1)
         };
         
@@ -163,6 +163,6 @@ public class ModeratorControllerTests : BaseControllerTest
         Assert.NotNull(result);
         Assert.NotNull(model);
         Assert.Equal(1, model.Id);
-        Assert.Equal("Inappropriate behavior", model.Reason);
+        Assert.Equal("Comportamento Inadequado", model.Reason);
     }
 }

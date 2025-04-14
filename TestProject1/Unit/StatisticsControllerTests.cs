@@ -77,7 +77,7 @@ public class StatisticsControllerTests : BaseControllerTest
         Assert.NotNull(model);
         Assert.Equal(2, model.TotalProducts);
         Assert.Equal(2, model.TotalUsers);
-        Assert.Equal(1, model.TotalDonatedProducts);
+        Assert.Equal(1, model.TotalDonatedProducts);        
         Assert.NotNull(model.WeeklyDonationStats);
         Assert.NotNull(model.MonthlyDonationStats);
         Assert.NotNull(model.CategoryStats);

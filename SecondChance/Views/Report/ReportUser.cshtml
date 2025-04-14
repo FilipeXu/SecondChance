@@ -109,7 +109,6 @@
     <script>
         $(document).ready(function() {
             $("form").submit(function(e) {
-                console.log("Formulário sendo enviado");
                 
                 if ($("#Reason").val() === "") {
                     e.preventDefault();
@@ -118,9 +117,6 @@
                 }
                 
                 return true;
-            });
-            $("#submitReport").click(function() {
-                console.log("Botão de enviar clicado");
             });
         });
     </script>

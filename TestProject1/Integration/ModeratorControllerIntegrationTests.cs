@@ -79,8 +79,8 @@ namespace TestProject1.Integration
                     ReporterUser = reporter,
                     ReportedUserId = reportedUser.Id,
                     ReportedUser = reportedUser,
-                    Reason = "Inappropriate behavior",
-                    Details = "User was rude",
+                    Reason = "Spam",
+                    Details = "Muitas mensagens",
                     ReportDate = DateTime.UtcNow,
                     IsResolved = false
                 },
@@ -91,10 +91,10 @@ namespace TestProject1.Integration
                     ReportedUserId = reportedUser.Id,
                     ReportedUser = reportedUser,
                     Reason = "Spam",
-                    Details = "Multiple unsolicited messages",
+                    Details = "Muitas mensagens",
                     ReportDate = DateTime.UtcNow,
                     IsResolved = true,
-                    Resolution = "Warning issued",
+                    Resolution = "Corrigido",
                     ResolvedDate = DateTime.UtcNow,
                     ResolvedById = admin.Id,
                     ResolvedBy = admin
@@ -128,8 +128,8 @@ namespace TestProject1.Integration
                 ReporterUser = reporter,
                 ReportedUserId = reportedUser.Id,
                 ReportedUser = reportedUser,
-                Reason = "Inappropriate behavior",
-                Details = "User was rude",
+                Reason = "Spam",
+                Details = "Muitas mensagens",
                 ReportDate = DateTime.UtcNow,
                 IsResolved = false
             };
@@ -146,7 +146,7 @@ namespace TestProject1.Integration
             Assert.Equal(report.Id, reportModel.Id);
             Assert.Equal(reporter.Id, reportModel.ReporterUserId);
             Assert.Equal(reportedUser.Id, reportModel.ReportedUserId);
-            Assert.Equal("Inappropriate behavior", reportModel.Reason);
+            Assert.Equal("Spam", reportModel.Reason);
         }
     }
 }

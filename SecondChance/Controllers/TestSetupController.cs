@@ -11,21 +11,35 @@ using System.Linq;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
+
 #if DEBUG
 namespace SecondChance.Controllers
 {
+    /// <summary>
+    /// Controlador responsável por criar e gerir dados de teste para a aplicação.
+    /// Utilizado para configurar rapidamente um ambiente de teste com utilizadores, produtos e interações.
+    /// </summary>
     [Route("test-setup")]
     public class TestSetupController : Controller
     {
         private readonly UserManager<User> _userManager;
-        private readonly ApplicationDbContext _context;
-
+        private readonly ApplicationDbContext _context;        
+        /// <summary>
+        /// Construtor que inicializa o gestor de utilizadores e o contexto da base de dados.
+        /// </summary>
+        /// <param name="userManager">Gestor de utilizadores do Identity para operações relacionadas com utilizadores.</param>
+        /// <param name="context">Contexto da base de dados da aplicação.</param>
         public TestSetupController(UserManager<User> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
-        }
-
+        }       
+         /// <summary>
+        /// Configura dados de teste para a aplicação, incluindo utilizadores, produtos, comentários, denúncias e mensagens de chat.
+        /// Este endpoint cria dois utilizadores de teste (administrador e utilizador comum) se eles não existirem,
+        /// além de criar produtos, comentários, denúncias e mensagens de chat associadas a estes utilizadores.
+        /// </summary>
+        /// <returns>Um IActionResult informando se a criação dos dados de teste foi bem-sucedida ou detalhando erros ocorridos.</returns>
         [HttpGet("setup-test-data")]
         public async Task<IActionResult> SetupTestUsers()
         {
@@ -229,15 +243,19 @@ namespace SecondChance.Controllers
 
 
             return Ok("Test data created successfully");
-        }
-
+        }        
+        /// <summary>
+        /// Reinicia completamente a base de dados de teste.
+        /// Este endpoint exclui toda a base de dados atual e cria uma nova base vazia com a estrutura correta.
+        /// Útil para limpar todos os dados e começar os testes com um ambiente totalmente limpo.
+        /// </summary>
+        /// <returns>Um IActionResult informando se a operação de reinício foi bem-sucedida.</returns>
         [HttpGet("reset-test-database")]
         public async Task<IActionResult> ResetTestDatabase()
         {
-           await _context.Database.EnsureDeletedAsync();
-        await _context.Database.EnsureCreatedAsync();
-        return Ok("Banco de dados resetado com sucesso");
-           
+            await _context.Database.EnsureDeletedAsync();
+            await _context.Database.EnsureCreatedAsync();
+            return Ok("Banco de dados resetado com sucesso");
         }
     }
 }

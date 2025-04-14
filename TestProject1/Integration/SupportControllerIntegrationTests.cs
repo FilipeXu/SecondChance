@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using SecondChance.Controllers;
+using SecondChance.Hubs;
 using SecondChance.Models;
 using SecondChance.ViewModels;
 using System.Security.Claims;
@@ -9,13 +12,20 @@ using Microsoft.AspNetCore.Identity;
 using Xunit;
 
 namespace TestProject1.Integration
-{
-    public class SupportControllerIntegrationTests : IntegrationTestBase
+{    public class SupportControllerIntegrationTests : IntegrationTestBase
     {
         private readonly SupportController _controller;
+        private readonly Mock<IHubContext<ChatHub>> _mockHubContext;
 
-        public SupportControllerIntegrationTests() => 
-            _controller = new SupportController(_context, _userManager);
+        public SupportControllerIntegrationTests()
+        {
+            _mockHubContext = CreateMockHubContext();
+            _controller = new SupportController(_context, _userManager, _mockHubContext.Object);
+        }
+          private Mock<IHubContext<ChatHub>> CreateMockHubContext()
+        {
+            return new Mock<IHubContext<ChatHub>>();
+        }
 
         private void SetupControllerUser(User user, bool isAdmin = false)
         {

@@ -4,10 +4,10 @@ using SecondChance.Data;
 using SecondChance.Models;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using SecondChance.Services;
+using SecondChance.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -22,11 +22,11 @@ builder.Services.AddIdentity<User, IdentityRole>(options => {
 .AddDefaultTokenProviders()
 .AddDefaultUI();
 
-// Add email sender service
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-// Register IProductRepository
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+builder.Services.AddSignalR();
 
 builder.Services.AddRazorPages();
 
@@ -46,7 +46,6 @@ builder.Services.AddAuthentication()
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -54,7 +53,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -64,6 +62,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
+
+app.MapHub<ChatHub>("/chatHub");
 
 app.MapControllerRoute(
     name: "default",

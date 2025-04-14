@@ -9,84 +9,89 @@ using SecondChance.Models;
 
 namespace SecondChance.Areas.Identity.Pages.Account
 {
+    /// <summary>
+    /// Modelo da página de início de sessão.
+    /// Gere o processo de autenticação de utilizadores na aplicação.
+    /// </summary>
     public class LoginModel : PageModel
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<User> signInManager, UserManager<User> userManager, ILogger<LoginModel> logger)
+        /// <summary>
+        /// Construtor da classe LoginModel.
+        /// </summary>
+        /// <param name="signInManager">Gestor de autenticação para operações de início de sessão</param>
+        /// <param name="userManager">Gestor de utilizadores que fornece APIs para gerir utilizadores</param>
+        public LoginModel(SignInManager<User> signInManager, UserManager<User> userManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
-            _logger = logger;
         }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Modelo com os dados de entrada para o início de sessão
         /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Lista de esquemas de autenticação externa disponíveis
         /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// URL de retorno após o início de sessão
         /// </summary>
         public string ReturnUrl { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Mensagem de erro temporária para exibição ao utilizador
         /// </summary>
         [TempData]
         public string ErrorMessage { get; set; }
 
         /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Classe que representa os dados do formulário de início de sessão
         /// </summary>
         public class InputModel
         {
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// Endereço de email do utilizador
             /// </summary>
             [Required]
             [EmailAddress]
             public string Email { get; set; }
 
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// Palavra-passe do utilizador
             /// </summary>
             [Required]
-
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             [PasswordStrengthAttribute]
             public string Password { get; set; }
 
             /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
+            /// Opção para manter a sessão iniciada
             /// </summary>
             [Display(Name = "Remember me?")]
             public bool RememberMe { get; set; }
 
             /// <summary>
-            /// Option to reactivate a previously deactivated account during login
+            /// Opção para reativar uma conta previamente desativada durante o início de sessão
             /// </summary>
             [Display(Name = "Reativar conta desativada")]
             public bool ReactivateAccount { get; set; }
         }
 
+        /// <summary>
+        /// Manipula o pedido GET para a página de início de sessão.
+        /// Configura os dados iniciais para o formulário de início de sessão.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após o início de sessão</param>
+        /// <param name="email">Email do utilizador, se conhecido</param>
+        /// <param name="inactive">Indica se a conta está inativa</param>
         public async Task OnGetAsync(string returnUrl = null, string email = null, bool inactive = false)
         {
             if (!string.IsNullOrEmpty(ErrorMessage))
@@ -109,6 +114,12 @@ namespace SecondChance.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
         }
 
+        /// <summary>
+        /// Manipula o pedido POST para o início de sessão de utilizadores.
+        /// Autentica o utilizador se as credenciais forem válidas.
+        /// </summary>
+        /// <param name="returnUrl">URL para redirecionar após o início de sessão bem-sucedido</param>
+        /// <returns>Página inicial ou página de início de sessão com erros de validação</returns>
         public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
