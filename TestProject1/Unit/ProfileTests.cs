@@ -1,150 +1,194 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using SecondChance.Areas.Identity.Pages.Account.Manage;
+using SecondChance.Data;
 using SecondChance.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using Xunit;
-using SecondChance.Data;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
-namespace TestProject1
+namespace TestProject1.Unit
 {
     public class ProfileTests
     {
-        private readonly Mock<UserManager<User>> _userManager;
-        private readonly Mock<SignInManager<User>> _signInManager;
-        private readonly Mock<IProductRepository> _productRepository;
-        private readonly Mock<ApplicationDbContext> _context;
-        private readonly User _testUser;
+        private ApplicationDbContext GetMockContext() => 
+            new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options);
 
-        public ProfileTests()
+        private Mock<UserManager<User>> SetupUserManager() =>
+            new Mock<UserManager<User>>(new Mock<IUserStore<User>>().Object, null, null, null, null, null, null, null, null);
+
+        private ClaimsPrincipal SetupClaimsPrincipal(string userId)
         {
-            _testUser = new User 
-            { 
-                Id = "testUserId", 
-                UserName = "test@example.com",
-                FullName = "Test User",
-                Location = "Test Location",
-                Description = "Test Description",
-                Image = "/Images/testimage.jpg",
-                JoinDate = DateTime.Now.AddMonths(-3),
-                IsActive = true
+            var claims = new List<Claim> {
+                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.Name, "testuser@test.com")
             };
-
-            _userManager = MockUserManager();
-            _signInManager = MockSignInManager();
-            _productRepository = new Mock<IProductRepository>();
-            _context = new Mock<ApplicationDbContext>(new DbContextOptions<ApplicationDbContext>());
+            return new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"));
         }
 
-        private Mock<UserManager<User>> MockUserManager()
+        [Fact]
+        public async Task OnGetAsync_ValidUser_ReturnsPageResult()
         {
-            var store = new Mock<IUserStore<User>>();
-            var userManager = new Mock<UserManager<User>>(
-                store.Object, null, null, null, null, null, null, null, null);
-            return userManager;
-        }
-
-        private Mock<SignInManager<User>> MockSignInManager()
-        {
-            return new Mock<SignInManager<User>>(
-                _userManager.Object, 
+            var userManagerMock = SetupUserManager();
+            var signInManagerMock = new Mock<SignInManager<User>>(
+                userManagerMock.Object,
                 new Mock<IHttpContextAccessor>().Object,
                 new Mock<IUserClaimsPrincipalFactory<User>>().Object,
                 null, null, null, null);
+
+            var testUser = new User {
+                Id = "test-user-id",
+                UserName = "testuser@test.com",
+                Email = "testuser@test.com",
+                FullName = "Test User",
+                IsActive = true
+            };
+
+            var claimsPrincipal = SetupClaimsPrincipal(testUser.Id);
+            userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(testUser);
+            userManagerMock.Setup(x => x.GetUserId(It.IsAny<ClaimsPrincipal>())).Returns(testUser.Id);
+
+            var context = GetMockContext();
+            var productRepoMock = new Mock<IProductRepository>();
+            productRepoMock.Setup(x => x.GetUserProductsAsync(testUser.Id, It.IsAny<string>()))
+                .ReturnsAsync(new List<Product>());
+
+            var pageModel = new IndexModel(
+                userManagerMock.Object,
+                signInManagerMock.Object,
+                context,
+                productRepoMock.Object)
+            {
+                PageContext = new PageContext {
+                    HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                }
+            };
+
+            var result = await pageModel.OnGetAsync();
+
+            Assert.IsType<PageResult>(result);
+            Assert.Equal(testUser.FullName, pageModel.UserProfile.FullName);
+            Assert.True(pageModel.IsCurrentUser);
         }
-
-        private IndexModel CreatePageModel()
-        {
-            return new IndexModel(
-                _userManager.Object,
-                _signInManager.Object,
-                _context.Object,
-                _productRepository.Object);
-        }
-
-        //[Fact]
-        //public async Task OnGetAsync_ValidUser_ReturnsPageResult()
-        //{
-        //    _userManager.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        //        .ReturnsAsync(_testUser);
-        //    _userManager.Setup(um => um.GetPhoneNumberAsync(_testUser))
-        //        .ReturnsAsync("1234567890");
-        //    _userManager.Setup(um => um.HasPasswordAsync(_testUser))
-        //        .ReturnsAsync(true);
-
-        //    _productRepository.Setup(repo => repo.GetUserProductsAsync(_testUser.Id, It.IsAny<string>()))
-        //        .ReturnsAsync(new List<Product> { new Product { Id = 1, Name = "Test Product", OwnerId = _testUser.Id } });
-
-        //    var pageModel = CreatePageModel();
-        //    var result = await pageModel.OnGetAsync();
-
-        //    Assert.IsType<PageResult>(result);
-        //    Assert.Equal(_testUser.FullName, pageModel.Input.FullName);
-        //    Assert.Equal(_testUser.Location, pageModel.Input.Location);
-        //    Assert.Equal(_testUser.Description, pageModel.Input.Description);
-        //    Assert.Equal(_testUser.Image, pageModel.Input.Image);
-        //    Assert.True(pageModel.HasPassword);
-        //    Assert.Single(pageModel.UserProducts);
-        //}
 
         [Fact]
         public async Task OnGetAsync_UserNotFound_ReturnsNotFoundResult()
         {
-            _userManager.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-                .ReturnsAsync(value: null!);
+            var userManagerMock = SetupUserManager();
+            var signInManagerMock = new Mock<SignInManager<User>>(
+                userManagerMock.Object,
+                new Mock<IHttpContextAccessor>().Object,
+                new Mock<IUserClaimsPrincipalFactory<User>>().Object,
+                null, null, null, null);
 
-            var result = await CreatePageModel().OnGetAsync();
+            userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync((User)null);
 
-            Assert.IsType<NotFoundObjectResult>(result);
+            var pageModel = new IndexModel(
+                userManagerMock.Object,
+                signInManagerMock.Object,
+                GetMockContext(),
+                new Mock<IProductRepository>().Object);
+
+            var result = await pageModel.OnGetAsync();
+
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Contains("Não foi possível carregar o utilizador", notFoundResult.Value.ToString());
         }
 
-        //[Fact]
-        //public async Task OnPostAsync_WithPasswordChange_UpdatesUserPassword()
-        //{
-        //    _userManager.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        //        .ReturnsAsync(_testUser);
-        //    _userManager.Setup(um => um.UpdateAsync(It.IsAny<User>()))
-        //        .ReturnsAsync(IdentityResult.Success);
-        //    _userManager.Setup(um => um.HasPasswordAsync(_testUser))
-        //        .ReturnsAsync(true);
-        //    _userManager.Setup(um => um.ChangePasswordAsync(_testUser, "OldPassword", "NewPassword"))
-        //        .ReturnsAsync(IdentityResult.Success);
+        [Fact]
+        public async Task OnPostAsync_WithPasswordChange_UpdatesUserPassword()
+        {
+            var userManagerMock = SetupUserManager();
+            var signInManagerMock = new Mock<SignInManager<User>>(
+                userManagerMock.Object,
+                new Mock<IHttpContextAccessor>().Object,
+                new Mock<IUserClaimsPrincipalFactory<User>>().Object,
+                null, null, null, null);
 
-        //    var pageModel = CreatePageModel();
-        //    pageModel.Input = new IndexModel.InputModel
-        //    {
-        //        FullName = "Test User",
-        //        OldPassword = "OldPassword",
-        //        NewPassword = "NewPassword",
-        //        ConfirmPassword = "NewPassword"
-        //    };
+            var testUser = new User {
+                Id = "test-user-id",
+                UserName = "testuser@test.com",
+                Email = "testuser@test.com",
+                FullName = "Test User"
+            };
 
-        //    var result = await pageModel.OnPostAsync();
+            var claimsPrincipal = SetupClaimsPrincipal(testUser.Id);
+            userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(testUser);
+            userManagerMock.Setup(x => x.HasPasswordAsync(testUser)).ReturnsAsync(true);
+            userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success);
+            userManagerMock.Setup(x => x.ChangePasswordAsync(testUser, "OldPass123!", "NewPass123!"))
+                .ReturnsAsync(IdentityResult.Success);
 
-        //    _userManager.Verify(um => um.ChangePasswordAsync(_testUser, "OldPassword", "NewPassword"), Times.Once);
-        //    var redirectResult = Assert.IsType<RedirectToPageResult>(result);
-        //    Assert.Null(redirectResult.PageName);
-        //}
+            var pageModel = new IndexModel(
+                userManagerMock.Object,
+                signInManagerMock.Object,
+                GetMockContext(),
+                new Mock<IProductRepository>().Object) {
+                PageContext = new PageContext {
+                    HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                },
+                Input = new IndexModel.InputModel {
+                    OldPassword = "OldPass123!",
+                    NewPassword = "NewPass123!",
+                    ConfirmPassword = "NewPass123!",
+                    FullName = testUser.FullName
+                }
+            };
+
+            var result = await pageModel.OnPostAsync();
+
+            Assert.IsType<PageResult>(result);
+            userManagerMock.Verify(x => x.ChangePasswordAsync(testUser, "OldPass123!", "NewPass123!"), Times.Once);
+            userManagerMock.Verify(x => x.UpdateAsync(It.IsAny<User>()), Times.Once);
+            signInManagerMock.Verify(x => x.RefreshSignInAsync(testUser), Times.Once);
+            Assert.Contains("Seu perfil foi atualizado com sucesso", pageModel.StatusMessage);
+        }
 
         [Fact]
         public async Task OnPostDeactivateAccountAsync_ValidUser_DeactivatesAccount()
         {
-            _userManager.Setup(um => um.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-                .ReturnsAsync(_testUser);
-            _userManager.Setup(um => um.UpdateAsync(It.IsAny<User>()))
-                .ReturnsAsync(IdentityResult.Success);
+            var userManagerMock = SetupUserManager();
+            var signInManagerMock = new Mock<SignInManager<User>>(
+                userManagerMock.Object,
+                new Mock<IHttpContextAccessor>().Object,
+                new Mock<IUserClaimsPrincipalFactory<User>>().Object,
+                null, null, null, null);
 
-            var result = await CreatePageModel().OnPostDeactivateAccountAsync();
+            var testUser = new User {
+                Id = "test-user-id",
+                UserName = "testuser@test.com",
+                Email = "testuser@test.com",
+                IsActive = true
+            };
 
-            _userManager.Verify(um => um.UpdateAsync(It.Is<User>(u => !u.IsActive)), Times.Once);
-            _signInManager.Verify(sm => sm.SignOutAsync(), Times.Once);
+            var claimsPrincipal = SetupClaimsPrincipal(testUser.Id);
+            userManagerMock.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(testUser);
+            userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<User>())).ReturnsAsync(IdentityResult.Success);
+
+            var pageModel = new IndexModel(
+                userManagerMock.Object,
+                signInManagerMock.Object,
+                GetMockContext(),
+                new Mock<IProductRepository>().Object) {
+                PageContext = new PageContext {
+                    HttpContext = new DefaultHttpContext { User = claimsPrincipal }
+                }
+            };
+
+            var result = await pageModel.OnPostDeactivateAccountAsync();
+
+            Assert.False(testUser.IsActive);
+            userManagerMock.Verify(x => x.UpdateAsync(testUser), Times.Once);
+            signInManagerMock.Verify(x => x.SignOutAsync(), Times.Once);
             var redirectResult = Assert.IsType<RedirectToPageResult>(result);
             Assert.Equal("/Account/Login", redirectResult.PageName);
         }
