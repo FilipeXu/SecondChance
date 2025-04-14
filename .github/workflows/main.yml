@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - master
+      - release
 
 env:
   AZURE_WEBAPP_NAME: SecondChance
@@ -13,6 +13,8 @@ env:
   SOLUTION_PATH: "SecondChance.sln"
   API_PROJECT_PATH: "./SecondChance/SecondChance.csproj"
   PUBLISH_DIR: "publish"
+  UNIT_TEST_PROJECT: "TestProject1.Unit/TestProject1.Unit.csproj"
+  INTEGRATION_TEST_PROJECT: "TestProject1.Integration/TestProject1.Integration.csproj"
 
 jobs:
   build-and-test:
@@ -33,8 +35,11 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
       
-      - name: Test
-        run: dotnet test TestProject1/TestProject1.csproj --configuration Release --no-build
+      - name: Run Unit Tests
+        run: dotnet test ${{ env.UNIT_TEST_PROJECT }} --configuration Release --no-build --filter "Category=Unit"
+        
+      - name: Run Integration Tests
+        run: dotnet test ${{ env.INTEGRATION_TEST_PROJECT }} --configuration Release --no-build --filter "Category=Integration"
       
       - name: Publish
         run: dotnet publish ${{ env.API_PROJECT_PATH }} --configuration Release --output ${{ env.PUBLISH_DIR }}
