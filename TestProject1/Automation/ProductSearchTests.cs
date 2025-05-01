@@ -13,7 +13,6 @@ namespace TestProject1.Automation
             SetupTestData();
             Driver.Navigate().GoToUrl($"{BaseUrl}/Products");
             Wait.Until(d => d.FindElements(By.Id("searchInput")).Count > 0);
-
             var searchInput = Driver.FindElement(By.Id("searchInput"));
             searchInput.Clear();
             searchInput.SendKeys("Test Product 1");

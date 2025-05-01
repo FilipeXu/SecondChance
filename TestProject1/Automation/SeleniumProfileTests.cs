@@ -67,7 +67,6 @@ namespace TestProject1.Automation
             Login(DefaultEmail, DefaultPassword);
             GoToProfile();
             OpenEditForm();
-
             var privateTab = Driver.FindElement(By.CssSelector("[data-tab='private-data']"));
             ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].click();", privateTab);
             

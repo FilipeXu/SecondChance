@@ -27,16 +27,12 @@ namespace TestProject1.Automation
                 loginForm.FindElement(By.Id("Input_Password")).SendKeys("WrongPassword123");
                 loginForm.FindElement(By.CssSelector("button[type='submit']")).Click();
 
-                Wait.Until(d =>
-                    d.FindElements(By.CssSelector(".validation-summary-errors")).Count > 0 ||
-                    d.PageSource.Contains("Invalid") ||
-                    d.PageSource.Contains("erro"));
+            Wait.Until(d =>
+                d.FindElements(By.CssSelector(".validation-summary-errors")).Count > 0 ||
+                d.PageSource.Contains("Invalid"));
                 string pageSource = Driver.PageSource.ToLower();
-                bool hasError =
-                    pageSource.Contains("invalid") ||
-                    pageSource.Contains("incorret") ||
-                    pageSource.Contains("erro") ||
-                    pageSource.Contains("inválid");
+            bool hasError =
+                pageSource.Contains("invalid");
 
                 Assert.True(hasError, "Page should show login error message");
         }
@@ -58,7 +54,6 @@ namespace TestProject1.Automation
                 string uniqueEmail = $"new_user_{DateTime.Now.Ticks}@example.com";
                 Driver.Navigate().GoToUrl($"{BaseUrl}/Identity/Account/Register");
                 Wait.Until(d => d.FindElements(By.Id("Input_Email")).Count > 0);
-                ((ITakesScreenshot)Driver).GetScreenshot().SaveAsFile("register_before_form.png");
                 Driver.FindElement(By.Id("Input_Email")).SendKeys(uniqueEmail);
                 Driver.FindElement(By.Id("Input_Password")).SendKeys("Test@123456");
                 Driver.FindElement(By.Id("Input_ConfirmPassword")).SendKeys("Test@123456");
@@ -76,24 +71,10 @@ namespace TestProject1.Automation
                 ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].click();", submitButton);
 
                 Wait.Until(d =>
-                    d.Url.Contains("/Home/Index") ||
-                    d.Url.Contains("/Identity/Account/Manage") ||
-                    d.Url.Contains("/Identity/Account/RegisterConfirmation") ||
-                    d.Url.Contains("/Identity/Account/ConfirmEmail") ||
-                    d.FindElements(By.CssSelector(".alert-success")).Count > 0 ||
-                    d.PageSource.Contains("success") ||
-                    d.PageSource.Contains("confirmation") ||
                     d.PageSource.Contains("email"));
                 string pageSource = Driver.PageSource.ToLower();
                 bool isSuccess =
-                    Driver.Url.Contains("/Home/Index") ||
-                    Driver.Url.Contains("/Identity/Account/Manage") ||
-                    Driver.Url.Contains("/Identity/Account/RegisterConfirmation") ||
-                    Driver.Url.Contains("/Identity/Account/ConfirmEmail") ||
-                    pageSource.Contains("success") ||
-                    pageSource.Contains("confirm") ||
-                    pageSource.Contains("email") ||
-                    pageSource.Contains("verificação");
+                    pageSource.Contains("email");
 
                 Assert.True(isSuccess, "User registration should lead to success or confirmation page");
                 Console.WriteLine($"After registration URL: {Driver.Url}");
@@ -110,13 +91,6 @@ namespace TestProject1.Automation
             IWebElement logoutButton = null;
             foreach (var selector in new[] {
                 By.CssSelector("form[action*='Logout'] button"),
-                By.CssSelector("[href*='Logout']"),
-                By.LinkText("Logout"),
-                By.LinkText("Sair"),
-                By.LinkText("Sign out"),
-                By.PartialLinkText("Logout"),
-                By.PartialLinkText("Sair"),
-                By.XPath("//form[contains(@action, 'Logout')]//button")
             })
             {
                 if (Driver.FindElements(selector).Count > 0)

@@ -25,7 +25,6 @@ namespace TestProject1.Automation
             Wait.Until(d => d.FindElements(By.CssSelector(".stats-section, .stats-container")).Count > 0);
 
             bool hasAdminStats =
-                Driver.PageSource.Contains("Utilizadores") ||
                 Driver.PageSource.Contains("Reports") ||
                 Driver.PageSource.Contains("Banidos");
 
@@ -39,13 +38,10 @@ namespace TestProject1.Automation
             LoginAsAdmin();
             Driver.Navigate().GoToUrl($"{BaseUrl}/Statistics");
             Wait.Until(d => d.FindElements(By.CssSelector(".stats-section, .stats-container")).Count > 0);
-            
 
-            bool hasUserStats = 
-                Driver.PageSource.Contains("Utilizadores") || 
-                Driver.PageSource.Contains("Utilizadores") || 
-                Driver.PageSource.Contains("Users");
-                
+
+            bool hasUserStats =
+                Driver.PageSource.Contains("Utilizadores");
             Assert.True(hasUserStats, "User statistics should be displayed");
         }
     }

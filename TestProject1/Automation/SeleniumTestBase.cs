@@ -48,17 +48,7 @@ namespace SeleniumTests
             
             Wait.Until(d => d.FindElement(By.Id("Input_Email")).Displayed);
             Driver.FindElement(By.Id("Input_Email")).SendKeys(email);
-            Driver.FindElement(By.Id("Input_Password")).SendKeys(password);
-            
-            if (rememberMe)
-            {
-                var checkbox = Driver.FindElements(By.Id("Input_RememberMe"));
-                if (checkbox.Count > 0 && !checkbox[0].Selected)
-                {
-                    checkbox[0].Click();
-                }
-            }
-            
+            Driver.FindElement(By.Id("Input_Password")).SendKeys(password);        
             Driver.FindElement(By.CssSelector("button.btn-primary")).Click();
             
             Wait.Until(d => 

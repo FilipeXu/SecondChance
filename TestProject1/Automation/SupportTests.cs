@@ -62,13 +62,10 @@ namespace TestProject1.Automation
                 SetupTestData();
                 Login("secondary@example.com", "Test@123456");
                 Driver.Navigate().GoToUrl($"{BaseUrl}/Support/AdminDashboard");
-                
-                Wait.Until(d => d.Url.Contains("AccessDenied") || 
-                               d.PageSource.Contains("Access Denied") ||
-                               d.PageSource.Contains("Acesso Negado"));
-                Assert.True(Driver.Url.Contains("AccessDenied") || 
-                           Driver.PageSource.Contains("Access Denied") ||
-                           Driver.PageSource.Contains("Acesso Negado"));
+
+                Wait.Until(d => d.Url.Contains("AccessDenied"));
+                Assert.True(Driver.Url.Contains("AccessDenied") ||
+                           Driver.PageSource.Contains("Access Denied"));
             }
             catch (Exception ex)
             {

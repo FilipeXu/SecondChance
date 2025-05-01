@@ -13,12 +13,9 @@ namespace TestProject1.Automation
         {
             SetupTestData();
             Login("test@example.com", "Test@123456");
-
             Driver.Navigate().GoToUrl($"{BaseUrl}/Products/Details/3");
-
             IWebElement contactButton = Wait.Until(d =>
                 d.FindElement(By.CssSelector("a[href*='Chat/StartConversation'], .contact-user-btn, .btn-contact, a.btn-primary[href*='Chat']")));
-
             ((IJavaScriptExecutor)Driver).ExecuteScript("arguments[0].scrollIntoView(true);", contactButton);
             contactButton.Click();
 
@@ -29,7 +26,6 @@ namespace TestProject1.Automation
 
             var messageText = $"Test message {Guid.NewGuid()}";
             messageInput.SendKeys(messageText);
-
             IWebElement sendButton = Wait.Until(d => 
                 d.FindElement(By.CssSelector(".send-button")));
 
