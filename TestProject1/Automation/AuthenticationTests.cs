@@ -77,8 +77,6 @@ namespace TestProject1.Automation
                     pageSource.Contains("email");
 
                 Assert.True(isSuccess, "User registration should lead to success or confirmation page");
-                Console.WriteLine($"After registration URL: {Driver.Url}");
-                Console.WriteLine($"Registration result: {(isSuccess ? "Success" : "Failure")}");
 
         }
 
