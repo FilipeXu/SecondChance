@@ -35,15 +35,5 @@ namespace SecondChance.Controllers
         {
             return View();
         }
-
-        /// <summary>
-        /// Apresenta a página de erro quando ocorre uma exceção na aplicação.
-        /// </summary>
-        /// <returns>Vista com informações sobre o erro</returns>
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
     }
 }

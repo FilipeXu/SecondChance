@@ -46,9 +46,4 @@ public abstract class BaseControllerTest
 
         return userManager;
     }
-
-    protected ILogger<T> CreateTestLogger<T>()
-    {
-        return new Mock<ILogger<T>>().Object;
-    }
 }

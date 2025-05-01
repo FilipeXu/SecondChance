@@ -339,32 +339,17 @@ namespace SecondChance.Areas.Identity.Pages.Account
         /// Cria uma nova instância da classe User.
         /// </summary>
         /// <returns>Nova instância da classe User</returns>
-        /// <exception cref="InvalidOperationException">Ocorre se não for possível criar uma instância da classe User</exception>
         private User CreateUser()
         {
-            try
-            {
                 return Activator.CreateInstance<User>();
-            }
-            catch
-            {
-                throw new InvalidOperationException($"Não foi possível criar uma instância de '{nameof(User)}'. " +
-                    $"Certifique-se de que '{nameof(User)}' não é uma classe abstrata e tem um construtor sem parâmetros, ou " +
-                    $"substitua a página de login externo em /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
-            }
         }
 
         /// <summary>
         /// Obtém o armazenamento de emails para utilizadores.
         /// </summary>
         /// <returns>Interface para gerir emails de utilizadores</returns>
-        /// <exception cref="NotSupportedException">Ocorre se o gestor de utilizadores não suportar email</exception>
         private IUserEmailStore<User> GetEmailStore()
         {
-            if (!_userManager.SupportsUserEmail)
-            {
-                throw new NotSupportedException("The default UI requires a user store with email support.");
-            }
             return (IUserEmailStore<User>)_userStore;
         }
     }

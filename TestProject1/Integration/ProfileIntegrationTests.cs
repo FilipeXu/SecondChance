@@ -51,15 +51,10 @@ namespace TestProject1.Integration
                 User = claimsPrincipal 
             };
             
-            httpContext.Request.ContentType = "application/x-www-form-urlencoded";
-            httpContext.Request.Method = "POST";
-            
             _pageModel.PageContext = new PageContext
             {
                 HttpContext = httpContext
             };
-            
-            _pageModel.TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>());
         }
 
         [Fact]

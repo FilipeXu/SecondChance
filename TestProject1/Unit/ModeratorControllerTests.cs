@@ -40,12 +40,6 @@ public class ModeratorControllerTests : BaseControllerTest
         return userManager;
     }
     
-    private void SetupController(Controller controller)
-    {
-        controller.TempData = new Microsoft.AspNetCore.Mvc.ViewFeatures.TempDataDictionary(
-            new Microsoft.AspNetCore.Http.DefaultHttpContext(),
-            Mock.Of<Microsoft.AspNetCore.Mvc.ViewFeatures.ITempDataProvider>());
-    }
 
     [Fact]
     public async Task Index_WhenUserIsNotAdmin_RedirectsToAccessDenied()

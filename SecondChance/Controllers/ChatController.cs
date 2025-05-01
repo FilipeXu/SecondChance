@@ -133,25 +133,6 @@ namespace SecondChance.Controllers
               return RedirectToAction(nameof(Conversation), new { userId });
         }        
         /// <summary>
-        /// Devolve a contagem de mensagens não lidas para o utilizador atual.
-        /// </summary>
-        /// <returns>Um objeto JSON contendo a contagem de mensagens não lidas</returns>
-        /// <remarks>
-        /// Este método é usado para atualizações em tempo real na interface do utilizador,
-        /// excluindo mensagens de suporte (que começam com "support_").
-        /// </remarks>
-        public async Task<IActionResult> UnreadMessageCount()
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Json(new { count = 0 });
-
-            var count = await _context.ChatMessages
-                .CountAsync(m => m.ReceiverId == currentUser.Id && 
-                                !m.IsRead && 
-                                !m.ConversationId.StartsWith("support_"));
-
-            return Json(new { count });
-        }          /// <summary>
         /// Obtém todas as conversas de um utilizador específico.
         /// </summary>
         /// <param name="userId">ID do utilizador cujas conversas serão recuperadas</param>
